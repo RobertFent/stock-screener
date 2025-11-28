@@ -1,0 +1,79 @@
+/* ---------------------------- */
+/*         TAILWIND v4          */
+/* ---------------------------- */
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+/* ---------------------------- */
+/*      SHADCN COLOR SYSTEM      */
+/* ---------------------------- */
+@theme {
+	--color-background: hsl(var(--background));
+	--color-foreground: hsl(var(--foreground));
+
+	--color-primary: hsl(var(--primary));
+	--color-primary-foreground: hsl(var(--primary-foreground));
+	--color-secondary: hsl(var(--secondary));
+	--color-secondary-foreground: hsl(var(--secondary-foreground));
+	--color-accent: hsl(var(--accent));
+	--color-accent-foreground: hsl(var(--accent-foreground));
+
+	--color-popover: hsl(var(--popover));
+	--color-popover-foreground: hsl(var(--popover-foreground));
+
+	--color-muted: hsl(var(--muted));
+	--color-muted-foreground: hsl(var(--muted-foreground));
+
+	--color-destructive: hsl(var(--destructive));
+	--color-destructive-foreground: hsl(var(--destructive-foreground));
+
+	--color-border: hsl(var(--border));
+	--color-input: hsl(var(--input));
+	--color-ring: hsl(var(--ring));
+}
+
+/* ---------------------------- */
+/*          BASE THEME          */
+/* ---------------------------- */
+@layer base {
+	:root {
+		/* App background + default text */
+		--background: 240 10% 4%;
+		--foreground: 0 0% 90%;
+
+		/* Brand / primary actions */
+		--primary: 240 10% 3.9%; /* very dark blue-gray */
+		--primary-foreground: 0 0% 98%; /* white text on primary */
+
+		/* Neutral secondary surfaces (cards, inputs, subtle UI) */
+		--secondary: 240 3.7% 15.9%;
+		--secondary-foreground: 0 0% 98%;
+
+		/* accent color (warm tone) */
+		--accent: 41 50% 57%;
+		--accent-foreground: 0 0% 98%;
+
+		--popover: 240 10% 3.9%;
+		--popover-foreground: 0 0% 98%;
+
+		/* Muted text and surfaces (dividers, placeholders, subtle UI) */
+		--muted: 240 3.7% 15.9%;
+		--muted-foreground: 240 5% 64.9%;
+
+		--color-destructive: 0 100% 53%;
+		--color-destructive-foreground: 0 0% 100%;
+
+		/* Border and input backgrounds */
+		--border: 240 3.7% 15.9%;
+		--input: 240 3.7% 15.9%; /* todo: verify if can be removed */
+		--ring: 240 4.9% 83.9%;
+	}
+
+	body {
+		@apply bg-background text-foreground;
+	}
+
+	* {
+		@apply border-border;
+	}
+}
