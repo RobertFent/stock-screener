@@ -26,10 +26,16 @@ const FilterRow = ({
 	filters: Filters;
 	setFilters: Dispatch<SetStateAction<Filters>>;
 }): JSX.Element => {
-	const update = <K extends keyof Filters>(
-		key: K,
-		value: Filters[K]
-	): void => {
+	const onInputChange = (target: HTMLInputElement, key: string): void => {
+		const value = target.value === '' ? undefined : Number(target.value);
+		setFilters((prevFilters) => {
+			return {
+				...prevFilters,
+				[key]: value
+			};
+		});
+	};
+	const onCheckboxChange = (value: boolean, key: string): void => {
 		setFilters((prevFilters) => {
 			return {
 				...prevFilters,
@@ -52,7 +58,7 @@ const FilterRow = ({
 						placeholder='Min. Volume'
 						value={filters.minVolume ?? ''}
 						onChange={(e) => {
-							return update('minVolume', Number(e.target.value));
+							return onInputChange(e.target, 'minVolume');
 						}}
 					/>
 				</div>
@@ -67,7 +73,7 @@ const FilterRow = ({
 						placeholder='Max. RSI'
 						value={filters.maxRSI ?? ''}
 						onChange={(e) => {
-							return update('maxRSI', Number(e.target.value));
+							return onInputChange(e.target, 'maxRSI');
 						}}
 					/>
 				</div>
@@ -82,7 +88,7 @@ const FilterRow = ({
 						placeholder='Min. IV'
 						value={filters.minIV ?? ''}
 						onChange={(e) => {
-							return update('minIV', Number(e.target.value));
+							return onInputChange(e.target, 'minIV');
 						}}
 					/>
 				</div>
@@ -96,7 +102,35 @@ const FilterRow = ({
 						placeholder='Max. IV'
 						value={filters.maxIV ?? ''}
 						onChange={(e) => {
-							return update('maxIV', Number(e.target.value));
+							return onInputChange(e.target, 'maxIV');
+						}}
+					/>
+				</div>
+
+				{/* --- WILLR --- */}
+				<div className='flex flex-col space-y-1'>
+					<label className='text-sm font-medium text-muted-foreground'>
+						Min. WILLR
+					</label>
+					<Input
+						type='number'
+						placeholder='Min. WILLR'
+						value={filters.minWillr ?? ''}
+						onChange={(e) => {
+							return onInputChange(e.target, 'minWillr');
+						}}
+					/>
+				</div>
+				<div className='flex flex-col space-y-1'>
+					<label className='text-sm font-medium text-muted-foreground'>
+						Max.. WILLR
+					</label>
+					<Input
+						type='number'
+						placeholder='Max. WILLR'
+						value={filters.maxWillr ?? ''}
+						onChange={(e) => {
+							return onInputChange(e.target, 'maxWillr');
 						}}
 					/>
 				</div>
@@ -108,7 +142,10 @@ const FilterRow = ({
 					<Switch
 						checked={filters.closeAboveEma20AboveEma50 ?? false}
 						onCheckedChange={(v) => {
-							return update('closeAboveEma20AboveEma50', v);
+							return onCheckboxChange(
+								v,
+								'closeAboveEma20AboveEma50'
+							);
 						}}
 					/>
 					Close &gt; EMA20 &gt; EMA50
@@ -118,7 +155,7 @@ const FilterRow = ({
 					<Switch
 						checked={filters.macdIncreasing ?? false}
 						onCheckedChange={(v) => {
-							return update('macdIncreasing', v);
+							return onCheckboxChange(v, 'macdIncreasing');
 						}}
 					/>
 					MACD increasing (last 3 days)
@@ -156,6 +193,12 @@ export default function StockDataView({
 			return false;
 		}
 		if (filters.maxIV && stock.rsi > filters.maxIV) {
+			return false;
+		}
+		if (filters.minWillr && stock.willr < filters.minWillr) {
+			return false;
+		}
+		if (filters.maxWillr && stock.willr > filters.maxWillr) {
 			return false;
 		}
 		if (
