@@ -1,6 +1,6 @@
 import 'server-only';
-import { desc, eq, and, isNull } from 'drizzle-orm';
-import { db } from './drizzle';
+import { desc, eq, and, isNull, sql } from 'drizzle-orm';
+import { db, stockAnalysisDb } from './drizzle';
 import {
 	activityLogs,
 	SanitizedActivityLog,
@@ -15,6 +15,7 @@ import {
 import { getCurrentAppUser } from '../auth/actions';
 import { logActivity } from '../serverFunctions';
 import { ActivityType, UserRole } from '../enums';
+import z from 'zod';
 
 export const getUserByClerkId = async (
 	clerkId: string
@@ -245,4 +246,52 @@ export const deleteUserWithTeamMembership = async (
 			.set({ deletedAt: new Date() })
 			.where(eq(teams.id, remainingTeamMembers[0].teamId));
 	}
+};
+
+export const enrichedStockData = z.object({
+	id: z.number(),
+	ticker: z.string(),
+	date: z.string(),
+	close: z.number(),
+	high: z.number(),
+	low: z.number(),
+	open: z.number(),
+	volume: z.string(),
+	ema20: z.number(),
+	ema50: z.number(),
+	macd_line: z.number(),
+	signal_line: z.number(),
+	rsi: z.number(),
+	iv: z.number(),
+	willr: z.number(),
+	last_updated_at: z.string(),
+	stoch_percent_k: z.number(),
+	stoch_percent_d: z.number(),
+	macd_line_prev_day: z.number(),
+	macd_line_prev_prev_day: z.number()
+});
+export const enrichedStockDataList = z.array(enrichedStockData);
+
+export const selectAllStocks = async (): Promise<
+	z.infer<typeof enrichedStockDataList>
+> => {
+	const result = await stockAnalysisDb.execute(sql`
+    WITH enriched AS (
+        SELECT
+            curr_data.*,
+            LAG(macd_line, 1) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_day,
+            LAG(macd_line, 2) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_prev_day
+        FROM stock_winners curr_data
+    )
+    SELECT *
+    FROM enriched
+    WHERE date = (SELECT MAX(date) FROM enriched)
+    ORDER BY date;
+  `);
+	const allStocks = enrichedStockDataList.parse(result);
+
+	if (allStocks.length === 0) {
+		throw Error('No stock data could be retrieved');
+	}
+	return allStocks;
 };
