@@ -29,9 +29,9 @@ const ClerkMenu = (): JSX.Element => {
 				</SignedOut>
 
 				<SignedIn>
-					<Link href='/saas' className='flex items-center'>
+					<Link href='/stock-screener' className='flex items-center'>
 						<span className='sm:ml-2 sm:text-xl font-semibold'>
-							Dashboard
+							Stock Screener
 						</span>
 					</Link>
 				</SignedIn>
@@ -45,10 +45,10 @@ const Header = (): JSX.Element => {
 		<header className='border-b'>
 			<div className='max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2 sm:py-4 flex justify-between items-center overflow-auto'>
 				{/* left items */}
-				<Link href='/' className='flex items-center'>
+				<Link href='/stock-screener' className='flex items-center'>
 					<CircleIcon className='h-4 sm:h-6 w-4 sm:w-6 text-accent' />
 					<span className='ml-2 sm:text-xl font-semibold'>
-						Application
+						Stock Screener
 					</span>
 				</Link>
 				{/* right items */}

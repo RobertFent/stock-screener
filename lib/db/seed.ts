@@ -1,38 +1,10 @@
 /* eslint-disable no-console */
-import { stripe } from '../payments/stripe';
-// import { db } from './drizzle';
-// import { users, teams, teamMembers } from './schema';
+import Stripe from 'stripe';
 
 /**
  * Inits admin user with test team assigned
  */
 const seed = async (): Promise<void> => {
-	// const [user] = await db
-	// 	.insert(users)
-	// 	.values([
-	// 		{
-	// 			email: 'info@robertfent.com',
-	// 			clerkId: 'verifiying',
-	// 			role: 'owner'
-	// 		}
-	// 	])
-	// 	.returning();
-
-	// console.log('Initial user created.');
-
-	// const [team] = await db
-	// 	.insert(teams)
-	// 	.values({
-	// 		name: 'Test Team'
-	// 	})
-	// 	.returning();
-
-	// await db.insert(teamMembers).values({
-	// 	teamId: team.id,
-	// 	userId: user.id,
-	// 	role: 'owner'
-	// });
-
 	await createStripeProducts();
 };
 
@@ -41,6 +13,9 @@ const seed = async (): Promise<void> => {
  */
 const createStripeProducts = async (): Promise<void> => {
 	console.log('Creating Stripe products and prices...');
+	const stripe = new Stripe(process.env.STRIPE_SECRET_KEY!, {
+		apiVersion: '2025-04-30.basil'
+	});
 
 	const baseProduct = await stripe.products.create({
 		name: 'Base',

@@ -6,9 +6,8 @@ import { JSX } from 'react';
 import { ClerkProvider } from '@clerk/nextjs';
 
 export const metadata: Metadata = {
-	title: 'Next.js SaaS Starter',
-	description:
-		'Get started quickly with Next.js, Postgres, Stripe, Clerk and PostHog.'
+	title: 'Stock Screener',
+	description: 'Stock Screener for a few indicators'
 };
 
 export const viewport: Viewport = {
