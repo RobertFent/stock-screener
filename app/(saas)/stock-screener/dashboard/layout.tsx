@@ -15,8 +15,12 @@ export default function DashboardLayout({
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 	const navItems = [
-		{ href: '/saas/dashboard', icon: Users, label: 'Team' },
-		{ href: '/saas/dashboard/activity', icon: Activity, label: 'Activity' }
+		{ href: '/stock-screener/dashboard', icon: Users, label: 'Team' },
+		{
+			href: '/stock-screener/dashboard/activity',
+			icon: Activity,
+			label: 'Activity'
+		}
 	];
 
 	return (
