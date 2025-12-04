@@ -22,7 +22,7 @@ This is a starter template for building a SaaS application using **Next.js** wit
 - **Database**: [Postgres](https://www.postgresql.org/)
 - **ORM**: [Drizzle](https://orm.drizzle.team/)
 - **Payments**: [Stripe](https://stripe.com/)
-- **UI Library**: [shadcn/ui](https://ui.shadcn.com/)
+- **UI Library**: [shadcn/ui](https://ui.shadcn.com/) and [Tailwind CSS](https://tailwindcss.com/)
 
 ## Getting Started
 
@@ -139,3 +139,7 @@ launch in dev mode
 ```sh
 pnpm dev
 ```
+
+# TODO
+
+- add initial working version and then move to development branch after release 1
