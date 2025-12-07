@@ -297,9 +297,10 @@ export default function StockDataView({
 	return (
 		<>
 			<FilterRow filters={filters} setFilters={setFilters}></FilterRow>
-			<div className='flex flex-row gap-4 mt-6 max-h-[80vh]'>
-				<div className='basis-1/4 overflow-auto'>
+			<div className='flex flex-col sm:flex-row gap-4 mt-6 max-h-[80vh]'>
+				<div className='sm:basis-1/4 overflow-auto'>
 					<>
+						{/* todo: make header sticky  */}
 						<h1 className='text-center mt-6 mb-4'>
 							Matching Symbols
 						</h1>
@@ -319,7 +320,7 @@ export default function StockDataView({
 						})}
 					</>
 				</div>
-				<div className='basis-3/4 text-center overflow-auto'>
+				<div className='sm:basis-3/4 text-center sm:overflow-auto'>
 					{selectedStock ? (
 						<div className='flex flex-col gap-4'>
 							<h1 className='text-xl font-bold tracking-tight sm:text-2xl md:text-4xl'>
@@ -329,15 +330,28 @@ export default function StockDataView({
 							<div className='grid grid-cols-2 gap-4'>
 								<p>
 									Last Updated At:{' '}
-									{selectedStock.last_updated_at}
+									{new Date(
+										selectedStock.last_updated_at
+									).toDateString()}
 								</p>
-								<p>Implied Volatility: {selectedStock.iv}</p>
-								<p>Signal Date (AMC): {selectedStock.date}</p>
-								<p>Williams R%: {selectedStock.willr}</p>
+								<p>
+									Implied Volatility:{' '}
+									{selectedStock.iv.toPrecision(6)}
+								</p>
+								<p>
+									Signal Date (AMC):{' '}
+									{new Date(
+										selectedStock.date
+									).toDateString()}
+								</p>
+								<p>
+									Williams R%:{' '}
+									{selectedStock.willr.toPrecision(6)}
+								</p>
 							</div>
 						</div>
 					) : (
-						<div className='text-xl'>
+						<div className='flex items-center justify-center h-full text-xl'>
 							Please select a symbol to see its data
 						</div>
 					)}

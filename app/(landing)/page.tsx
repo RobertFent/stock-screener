@@ -1,6 +1,7 @@
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Database, UserCheck, ChartArea } from 'lucide-react';
 import { JSX } from 'react';
+import Image from 'next/image';
 
 const FeatureElement = (
 	icon: JSX.Element,
@@ -29,27 +30,39 @@ export default function HomePage(): JSX.Element {
 		<main>
 			<section className='py-10 sm:py-20'>
 				<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-					<div className='sm:text-center max-w-4xl mx-auto'>
-						<h1 className='text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl'>
-							Filter Nasdaq and S&P 500 Stocks Instantly with
-							<span className='block text-accent'>
-								Stock Screener
-							</span>
-						</h1>
-						<p className='mt-3 text-base text-foreground/80 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl'>
-							Quickly find stocks that meet your trading criteria.
-							Track RSI, IV, Williams %R, Stochastics, EMA trends,
-							and MACD.
-						</p>
-						<a href='/stock-screener'>
-							<Button
-								size='lg'
-								className='mt-8 text-lg rounded-full'
-							>
-								Try It Now
-								<ArrowRight className='ml-3 h-6 w-6' />
-							</Button>
-						</a>
+					<div className='lg:grid lg:grid-cols-12 lg:gap-8'>
+						<div className='sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left'>
+							<h1 className='text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl'>
+								Filter Nasdaq and S&P 500 Stocks Instantly with
+								<span className='text-accent'>
+									{' '}
+									Stock Screener
+								</span>
+							</h1>
+							<p className='mt-3 text-base text-foreground/80 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl'>
+								Quickly find stocks that meet your trading
+								criteria. Track RSI, IV, Williams %R,
+								Stochastics, EMA trends, and MACD.
+							</p>
+							<a href='/stock-screener'>
+								<Button
+									size='lg'
+									className='mt-8 text-lg rounded-full'
+								>
+									Try It Now
+									<ArrowRight className='ml-3 h-6 w-6' />
+								</Button>
+							</a>
+						</div>
+						<div className='mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center'>
+							<Image
+								src='/images/stock_screener_example.png'
+								alt='Example image'
+								width={600}
+								height={400}
+								className='w-full h-auto'
+							/>
+						</div>
 					</div>
 				</div>
 			</section>
