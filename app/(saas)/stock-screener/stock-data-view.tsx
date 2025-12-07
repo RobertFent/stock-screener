@@ -5,13 +5,21 @@ import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
 import { enrichedStockData, enrichedStockDataList } from '@/lib/db/queries';
 import z from '@/node_modules/zod/v4/classic/external.cjs';
-import { Dispatch, JSX, SetStateAction, useState } from 'react';
+import {
+	Dispatch,
+	JSX,
+	SetStateAction,
+	useCallback,
+	useEffect,
+	useState
+} from 'react';
 
 // todo: filter for stochastics and signal line of macd
 type Filters = {
 	minVolume?: number;
 	macdIncreasing?: boolean;
 	closeAboveEma20AboveEma50?: boolean;
+	stochasticsKAbvoeD?: boolean;
 	maxRSI?: number;
 	minIV?: number;
 	maxIV?: number;
@@ -160,9 +168,72 @@ const FilterRow = ({
 					/>
 					MACD increasing (last 3 days)
 				</label>
+
+				<label className='flex items-center gap-2 text-sm'>
+					<Switch
+						checked={filters.stochasticsKAbvoeD ?? false}
+						onCheckedChange={(v) => {
+							return onCheckboxChange(v, 'stochasticsKAbvoeD');
+						}}
+					/>
+					Stochastics K% above D%
+				</label>
 			</div>
 		</div>
 	);
+};
+
+declare global {
+	interface Window {
+		TradingView: any;
+	}
+}
+const TradingViewChart = ({ ticker }: { ticker: string }): JSX.Element => {
+	const containerId = 'tv_chart_container';
+
+	const createChart = useCallback((): any => {
+		if (typeof window.TradingView === 'undefined') {
+			return;
+		}
+
+		new window.TradingView.widget({
+			autosize: true,
+			symbol: ticker,
+			interval: 'D',
+			theme: 'dark',
+			style: '1',
+			locale: 'en',
+			studies: [
+				'RSI@tv-basicstudies',
+				'MACD@tv-basicstudies', // todo set params for indicators
+				'Stochastic@tv-basicstudies'
+			],
+			container_id: containerId
+		});
+	}, [ticker]);
+
+	useEffect(() => {
+		// remove old chart if it exists
+		const oldChart = document.getElementById(containerId);
+		if (oldChart) {
+			oldChart.innerHTML = '';
+		}
+
+		// load script only once
+		if (!document.getElementById('tv-script')) {
+			const script = document.createElement('script');
+			script.id = 'tv-script';
+			script.src = 'https://s3.tradingview.com/tv.js';
+			script.onload = (): void => {
+				return createChart();
+			};
+			document.body.appendChild(script);
+		} else {
+			createChart();
+		}
+	}, [createChart, ticker]);
+
+	return <div id={containerId} style={{ width: '100%', height: '50vh' }} />;
 };
 
 export default function StockDataView({
@@ -214,13 +285,19 @@ export default function StockDataView({
 		) {
 			return false;
 		}
+		if (
+			filters.stochasticsKAbvoeD &&
+			stock.stoch_percent_k <= stock.stoch_percent_d
+		) {
+			return false;
+		}
 		return true;
 	});
 
 	return (
 		<>
 			<FilterRow filters={filters} setFilters={setFilters}></FilterRow>
-			<div className='flex flex-row gap-4 mt-10 max-h-[80vh]'>
+			<div className='flex flex-row gap-4 mt-6 max-h-[80vh]'>
 				<div className='basis-1/4 overflow-auto'>
 					<>
 						<h1 className='text-center mb-4'>Matching Symbols</h1>
@@ -241,39 +318,15 @@ export default function StockDataView({
 					</>
 				</div>
 				<div className='basis-3/4 text-center overflow-auto'>
-					<div className='font-bold text-3xl mb-10'>
-						Here will be some stock information and a proper chart
-					</div>
 					{selectedStock ? (
-						<div className='mt-10'>
-							<p>Ticker: {selectedStock.ticker}</p>
-							<p>Date: {selectedStock.date}</p>
-							<p>Close: {selectedStock.close}</p>
-							<p>High: {selectedStock.high}</p>
-							<p>Low: {selectedStock.low}</p>
-							<p>Open: {selectedStock.open}</p>
-							<p>Volume: {selectedStock.volume}</p>
-							<p>EMA20: {selectedStock.ema20}</p>
-							<p>EMA50: {selectedStock.ema50}</p>
-							<p>Macd Line: {selectedStock.macd_line}</p>
-							<p>
-								Macd Line Prev. Day:{' '}
-								{selectedStock.macd_line_prev_day}
-							</p>
-							<p>
-								Macd Line Prev. Prev. Day:{' '}
-								{selectedStock.macd_line_prev_prev_day}
-							</p>
-							<p>Signal Line: {selectedStock.signal_line}</p>
-							<p>RSI: {selectedStock.rsi}</p>
-							<p>IV: {selectedStock.iv}</p>
-							<p>WILLR: {selectedStock.willr}</p>
-							<p>
-								Stochastic %K: {selectedStock.stoch_percent_k}
-							</p>
-							<p>
-								Stochastic %D: {selectedStock.stoch_percent_d}
-							</p>
+						<div className='flex flex-col'>
+							<h1 className='text-xl font-bold tracking-tight sm:text-2xl md:text-4xl'>
+								{selectedStock.ticker}
+							</h1>
+							<TradingViewChart ticker={selectedStock.ticker} />
+							<p>Signal Date (AMC): {selectedStock.date}</p>
+							<p>Williams R%: {selectedStock.willr}</p>
+							<p>Implied Volatility: {selectedStock.iv}</p>
 							<p>
 								Last Updated At: {selectedStock.last_updated_at}
 							</p>
