@@ -16,16 +16,16 @@ export default async function PricingPage(): Promise<JSX.Element> {
 	const basePlan = products.find((product) => {
 		return product.name === 'Base';
 	});
-	const plusPlan = products.find((product) => {
-		return product.name === 'Plus';
-	});
+	// const plusPlan = products.find((product) => {
+	// 	return product.name === 'Plus';
+	// });
 
 	const basePrice = prices.find((price) => {
 		return price.productId === basePlan?.id;
 	});
-	const plusPrice = prices.find((price) => {
-		return price.productId === plusPlan?.id;
-	});
+	// const plusPrice = prices.find((price) => {
+	// 	return price.productId === plusPlan?.id;
+	// });
 
 	return (
 		<main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
@@ -42,7 +42,7 @@ export default async function PricingPage(): Promise<JSX.Element> {
 					]}
 					priceId={basePrice?.id}
 				/>
-				<PricingCard
+				{/* <PricingCard
 					name={plusPlan?.name || 'Plus'}
 					price={plusPrice?.unitAmount || 1200}
 					interval={plusPrice?.interval || 'month'}
@@ -53,7 +53,7 @@ export default async function PricingPage(): Promise<JSX.Element> {
 						'24/7 Support + Slack Access'
 					]}
 					priceId={plusPrice?.id}
-				/>
+				/> */}
 			</div>
 		</main>
 	);

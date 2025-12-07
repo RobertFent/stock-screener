@@ -300,7 +300,9 @@ export default function StockDataView({
 			<div className='flex flex-row gap-4 mt-6 max-h-[80vh]'>
 				<div className='basis-1/4 overflow-auto'>
 					<>
-						<h1 className='text-center mb-4'>Matching Symbols</h1>
+						<h1 className='text-center mt-6 mb-4'>
+							Matching Symbols
+						</h1>
 						{filteredStocks.map((stock) => {
 							return (
 								<Button
@@ -319,17 +321,20 @@ export default function StockDataView({
 				</div>
 				<div className='basis-3/4 text-center overflow-auto'>
 					{selectedStock ? (
-						<div className='flex flex-col'>
+						<div className='flex flex-col gap-4'>
 							<h1 className='text-xl font-bold tracking-tight sm:text-2xl md:text-4xl'>
 								{selectedStock.ticker}
 							</h1>
 							<TradingViewChart ticker={selectedStock.ticker} />
-							<p>Signal Date (AMC): {selectedStock.date}</p>
-							<p>Williams R%: {selectedStock.willr}</p>
-							<p>Implied Volatility: {selectedStock.iv}</p>
-							<p>
-								Last Updated At: {selectedStock.last_updated_at}
-							</p>
+							<div className='grid grid-cols-2 gap-4'>
+								<p>
+									Last Updated At:{' '}
+									{selectedStock.last_updated_at}
+								</p>
+								<p>Implied Volatility: {selectedStock.iv}</p>
+								<p>Signal Date (AMC): {selectedStock.date}</p>
+								<p>Williams R%: {selectedStock.willr}</p>
+							</div>
 						</div>
 					) : (
 						<div className='text-xl'>
