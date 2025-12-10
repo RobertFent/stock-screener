@@ -3,6 +3,7 @@ import { SubmitButton } from './submit-button';
 import { JSX } from 'react';
 import { getStripePrices, getStripeProducts } from '@/lib/payments/stripe';
 import { checkoutAction } from '@/lib/payments/actions';
+import Link from 'next/link';
 
 // Prices are fresh for one hour max
 export const revalidate = 3600;
@@ -31,12 +32,22 @@ export default async function PricingPage(): Promise<JSX.Element> {
 		<main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
 			<div className='grid md:grid-cols-2 gap-8 max-w-xl mx-auto'>
 				<PricingCard
+					name={'Free'}
+					price={0}
+					interval={'life time'}
+					features={[
+						'Up to 3 Saved Filters',
+						'Up to 3 Workspace Members'
+					]}
+					routesToLogin={true}
+				/>
+				<PricingCard
 					name={basePlan?.name || 'Base'}
 					price={basePrice?.unitAmount || 800}
 					interval={basePrice?.interval || 'month'}
 					trialDays={basePrice?.trialPeriodDays || 7}
 					features={[
-						'Unlimited Usage',
+						'Up to 10 Saved Filters',
 						'Unlimited Workspace Members',
 						'Email Support'
 					]}
@@ -65,22 +76,28 @@ const PricingCard = ({
 	interval,
 	trialDays,
 	features,
-	priceId
+	priceId,
+	routesToLogin = false
 }: {
 	name: string;
 	price: number;
 	interval: string;
-	trialDays: number;
+	trialDays?: number;
 	features: string[];
 	priceId?: string;
+	routesToLogin?: boolean;
 }): JSX.Element => {
 	return (
 		<div className='p-6 bg-secondary/60 rounded-xl flex flex-col'>
 			<div className='flex-1'>
 				<h2 className='text-2xl font-bold mb-2'>{name}</h2>
-				<p className='text-sm mb-4 text-secondary-foreground/80'>
-					with {trialDays} day free trial
-				</p>
+				<div className={trialDays ? 'mb-4' : 'mb-10'}>
+					{trialDays && (
+						<p className='text-sm mb-4 text-secondary-foreground/80'>
+							with {trialDays} day free trial
+						</p>
+					)}
+				</div>
 				<p className='text-4xl font-medium text-secondary-foreground/80 mb-6'>
 					${price / 100}{' '}
 					<span className='text-xl font-normal text-secondary-foreground'>
@@ -100,10 +117,16 @@ const PricingCard = ({
 					})}
 				</ul>
 			</div>
-			<form action={checkoutAction} className='mt-auto'>
-				<input type='hidden' name='priceId' value={priceId} />
-				<SubmitButton />
-			</form>
+			{routesToLogin ? (
+				<Link href='/stock-screener' className='mt-auto block'>
+					<SubmitButton />
+				</Link>
+			) : (
+				<form action={checkoutAction} className='mt-auto'>
+					<input type='hidden' name='priceId' value={priceId} />
+					<SubmitButton />
+				</form>
+			)}
 		</div>
 	);
 };
