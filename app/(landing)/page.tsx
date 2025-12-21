@@ -10,7 +10,7 @@ const FeatureElement = (
 ): JSX.Element => {
 	return (
 		<div className='mt-10 lg:mt-0'>
-			<div className='flex items-center justify-center h-12 w-12 rounded-md bg-accent'>
+			<div className='flex items-center justify-center h-12 w-12 rounded-md bg-primary'>
 				{icon}
 			</div>
 			<div className='mt-5'>
@@ -34,7 +34,7 @@ export default function HomePage(): JSX.Element {
 						<div className='sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left'>
 							<h1 className='text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl'>
 								Filter Nasdaq and S&P 500 Stocks Instantly with
-								<span className='text-accent'>
+								<span className='text-primary'>
 									{' '}
 									Stock Screener
 								</span>
@@ -48,6 +48,7 @@ export default function HomePage(): JSX.Element {
 								<Button
 									size='lg'
 									className='mt-8 text-lg rounded-full'
+									variant='outline'
 								>
 									Try It Now
 									<ArrowRight className='ml-3 h-6 w-6' />

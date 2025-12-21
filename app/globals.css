@@ -41,17 +41,17 @@
 		--background: 240 10% 4%;
 		--foreground: 0 0% 90%;
 
-		/* Brand / primary actions */
-		--primary: 240 10% 3.9%; /* very dark blue-gray */
-		--primary-foreground: 0 0% 98%; /* white text on primary */
+		/* accent in shadcn -> Brand / primary actions */
+		--accent: 240 10% 3.9%; /* very dark blue-gray */
+		--accent-foreground: 0 0% 98%; /* white text on primary */
 
 		/* Neutral secondary surfaces (cards, inputs, subtle UI) */
 		--secondary: 240 3.7% 15.9%;
 		--secondary-foreground: 0 0% 98%;
 
-		/* accent color (warm tone) */
-		--accent: 41 50% 57%;
-		--accent-foreground: 0 0% 98%;
+		/* primary in shadcn -> accent color (warm tone) */
+		--primary: 41 50% 57%;
+		--primary-foreground: 0 0% 98%;
 
 		--popover: 240 10% 3.9%;
 		--popover-foreground: 0 0% 98%;

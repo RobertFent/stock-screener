@@ -16,13 +16,13 @@ const ClerkMenu = (): JSX.Element => {
 		<>
 			<ClerkLoading>
 				{/* Skeleton or placeholder */}
-				<div className='rounded-full bg-accent h-10 sm:h-12 px-4 sm:px-5 sm:w-22 animate-pulse' />
+				<div className='rounded-full bg-primary h-10 sm:h-12 px-4 sm:px-5 sm:w-22 animate-pulse' />
 			</ClerkLoading>
 
 			<ClerkLoaded>
 				<SignedOut>
 					<SignInButton>
-						<button className='bg-accent rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer'>
+						<button className='bg-primary rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer'>
 							Sign In
 						</button>
 					</SignInButton>
@@ -46,7 +46,7 @@ const Header = (): JSX.Element => {
 			<div className='max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-2 sm:py-4 flex justify-between items-center overflow-auto'>
 				{/* left items */}
 				<Link href='/stock-screener' className='flex items-center'>
-					<CircleIcon className='h-4 sm:h-6 w-4 sm:w-6 text-accent' />
+					<CircleIcon className='h-4 sm:h-6 w-4 sm:w-6 text-primary' />
 					<span className='ml-2 sm:text-xl font-semibold'>
 						Stock Screener
 					</span>

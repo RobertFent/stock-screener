@@ -12,7 +12,6 @@ export function SubmitButton(): JSX.Element {
 		<Button
 			type='submit'
 			disabled={pending}
-			variant='outline'
 			className='w-full rounded-full'
 		>
 			{pending ? (

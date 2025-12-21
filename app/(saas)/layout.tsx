@@ -11,7 +11,7 @@ const Header = (): JSX.Element => {
 			<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center overflow-auto'>
 				{/* left items */}
 				<Link href='/stock-screener' className='flex items-center'>
-					<CircleIcon className='h-4 sm:h-6 w-4 sm:w-6 text-accent' />
+					<CircleIcon className='h-4 sm:h-6 w-4 sm:w-6 text-primary' />
 					<span className='ml-2 sm:text-xl font-semibold'>
 						Stock Screener
 					</span>

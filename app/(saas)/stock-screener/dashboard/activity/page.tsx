@@ -22,7 +22,8 @@ const iconMap: Record<ActivityType, LucideIcon> = {
 	[ActivityType.CREATE_TEAM]: UserPlus,
 	[ActivityType.REMOVE_TEAM_MEMBER]: UserMinus,
 	[ActivityType.INVITE_TEAM_MEMBER]: Mail,
-	[ActivityType.ACCEPT_INVITATION]: CheckCircle
+	[ActivityType.ACCEPT_INVITATION]: CheckCircle,
+	[ActivityType.ADD_FILTER]: CheckCircle // todo
 };
 
 const getRelativeTime = (date: Date): string => {
@@ -95,8 +96,8 @@ export default async function ActivityPage(): Promise<JSX.Element> {
 										key={log.id}
 										className='flex items-center space-x-4'
 									>
-										<div className='bg-accent rounded-full p-2'>
-											<Icon className='w-5 h-5 text-accent-foreground' />
+										<div className='bg-primary rounded-full p-2'>
+											<Icon className='w-5 h-5 text-primary-foreground' />
 										</div>
 										<div className='flex-1'>
 											<p className='text-sm font-medium'>
@@ -114,7 +115,7 @@ export default async function ActivityPage(): Promise<JSX.Element> {
 						</ul>
 					) : (
 						<div className='flex flex-col items-center justify-center text-center py-12'>
-							<AlertCircle className='h-12 w-12 text-accent mb-4' />
+							<AlertCircle className='h-12 w-12 text-primary mb-4' />
 							<h3 className='text-lg font-semibold mb-2'>
 								No activity yet
 							</h3>

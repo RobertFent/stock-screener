@@ -8,7 +8,7 @@ export default function BlogPage(): JSX.Element {
 					<div className='sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left'>
 						<h1 className='text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl'>
 							Your
-							<span className='text-accent'> Blog </span>
+							<span className='text-primary'> Blog </span>
 							will live here
 						</h1>
 						<p className='mt-3 text-base text-foreground/80 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl'>

@@ -143,4 +143,6 @@ pnpm dev
 # TODO
 
 - filter saving
+- decide which indicators to use (checkbox)
+- fix color schema (pull shadcn element and check the default colors)
 - add initial working version and then move to development branch after release 1
