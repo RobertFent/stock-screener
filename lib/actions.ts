@@ -9,7 +9,12 @@ import { logger } from '@/lib/logger';
 import { logActivity } from './serverFunctions';
 import { sendInvitation } from './auth/actions';
 import { ActivityType, UserRole } from './enums';
-import { addUserToTeam, createTeam, deleteTeamMember } from './db/queries';
+import {
+	addUserToTeam,
+	createTeam,
+	deleteTeamMember,
+	insertNewFilter
+} from './db/queries';
 import { formatError } from './formatters';
 
 const log = logger.child({
@@ -126,5 +131,32 @@ export const inviteTeamMember = validatedActionWithUserAndTeamId(
 		);
 
 		return { success: 'Invitation sent successfully' };
+	}
+);
+
+export const filtersSchema = z.object({
+	name: z.string(),
+	minVolume: z.number().int().positive().optional(),
+	maxRSI: z.number().min(0).max(100).optional(),
+	minIV: z.number().min(0).max(100).optional(),
+	maxIV: z.number().min(0).max(100).optional(),
+	minWillr: z.number().min(-100).max(0).optional(),
+	maxWillr: z.number().min(-100).max(0).optional(),
+	minStochK: z.number().min(0).max(100).optional(),
+	maxStochK: z.number().min(0).max(100).optional(),
+	macdIncreasing: z.boolean().optional(),
+	macdLineAboveSignal: z.boolean().optional(),
+	closeAboveEma20AboveEma50: z.boolean().optional(),
+	stochasticsKAbvoeD: z.boolean().optional()
+});
+export const saveFilter = validatedActionWithUserAndTeamId(
+	filtersSchema,
+	async (data, _, userWithTeam) => {
+		insertNewFilter(data, userWithTeam.user.id, userWithTeam.teamId);
+		await logActivity(
+			userWithTeam.teamId,
+			userWithTeam.user.id,
+			ActivityType.ADD_FILTER
+		);
 	}
 );

@@ -3,6 +3,8 @@ import { desc, eq, and, isNull, sql } from 'drizzle-orm';
 import { db, stockAnalysisDb } from './drizzle';
 import {
 	activityLogs,
+	Filter,
+	filters,
 	SanitizedActivityLog,
 	Team,
 	TeamDataWithMembers,
@@ -16,6 +18,7 @@ import { getCurrentAppUser } from '../auth/actions';
 import { logActivity } from '../serverFunctions';
 import { ActivityType, UserRole } from '../enums';
 import z from 'zod';
+import { filtersSchema } from '../actions';
 
 export const getUserByClerkId = async (
 	clerkId: string
@@ -294,4 +297,47 @@ export const selectAllStocks = async (): Promise<
 		throw Error('No stock data could be retrieved');
 	}
 	return allStocks;
+};
+
+// todo: check where to z.infer and where to use Filter type
+// todo: error handling
+export const selectAllFilters = async (teamId: string): Promise<Filter[]> => {
+	const allFilters = await db
+		.select()
+		.from(filters)
+		.where(eq(filters.teamId, teamId));
+
+	return allFilters;
+};
+
+export const insertNewFilter = async (
+	filter: z.infer<typeof filtersSchema>,
+	userId: string,
+	teamId: string
+): Promise<void> => {
+	// parse decimal numbers to string
+	const filterWithConvertedTypes = {
+		...filter,
+		minWillr: filter.minWillr?.toString(),
+		maxWillr: filter.maxWillr?.toString(),
+		minIV: filter.minIV?.toString(),
+		maxIV: filter.maxIV?.toString(),
+		maxRSI: filter.maxRSI?.toString(),
+		minStochK: filter.minStochK?.toString(),
+		maxStochK: filter.maxStochK?.toString()
+	};
+
+	const newFilter = await db
+		.insert(filters)
+		.values({
+			...filterWithConvertedTypes,
+			name: 'Untitled Filter',
+			teamId: teamId,
+			userId: userId
+		})
+		.returning();
+
+	if (newFilter.length < 1) {
+		throw Error('Failed creating new filter');
+	}
 };

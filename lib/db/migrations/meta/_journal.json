@@ -8,6 +8,13 @@
       "when": 1762437255977,
       "tag": "0000_sturdy_sersi",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1765386710574,
+      "tag": "0001_classy_star_brand",
+      "breakpoints": true
     }
   ]
 }
