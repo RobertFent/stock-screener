@@ -18,7 +18,6 @@ import { getCurrentAppUser } from '../auth/actions';
 import { logActivity } from '../serverFunctions';
 import { ActivityType, UserRole } from '../enums';
 import z from 'zod';
-import { filtersSchema } from '../actions';
 
 export const getUserByClerkId = async (
 	clerkId: string
@@ -243,11 +242,23 @@ export const deleteUserWithTeamMembership = async (
 			)
 		);
 
-	if (remainingTeamMembers.length > 0) {
+	await logActivity(
+		deletedTeamMemberships[0].teamId,
+		user.id,
+		ActivityType.REMOVE_TEAM_MEMBER
+	);
+
+	if (remainingTeamMembers.length === 0) {
 		await db
 			.update(teams)
 			.set({ deletedAt: new Date() })
-			.where(eq(teams.id, remainingTeamMembers[0].teamId));
+			.where(eq(teams.id, deletedTeamMemberships[0].teamId));
+
+		await logActivity(
+			deletedTeamMemberships[0].teamId,
+			user.id,
+			ActivityType.DELETE_TEAM
+		);
 	}
 };
 
@@ -301,7 +312,9 @@ export const selectAllStocks = async (): Promise<
 
 // todo: check where to z.infer and where to use Filter type
 // todo: error handling
-export const selectAllFilters = async (teamId: string): Promise<Filter[]> => {
+export const selectAllFiltersByTeamId = async (
+	teamId: string
+): Promise<Filter[]> => {
 	const allFilters = await db
 		.select()
 		.from(filters)
@@ -310,6 +323,21 @@ export const selectAllFilters = async (teamId: string): Promise<Filter[]> => {
 	return allFilters;
 };
 
+export const filtersSchema = z.object({
+	name: z.string(),
+	minVolume: z.number().int().positive().optional(),
+	maxRSI: z.number().min(0).max(100).optional(),
+	minIV: z.number().min(0).max(100).optional(),
+	maxIV: z.number().min(0).max(100).optional(),
+	minWillr: z.number().min(-100).max(0).optional(),
+	maxWillr: z.number().min(-100).max(0).optional(),
+	minStochK: z.number().min(0).max(100).optional(),
+	maxStochK: z.number().min(0).max(100).optional(),
+	macdIncreasing: z.boolean().optional(),
+	macdLineAboveSignal: z.boolean().optional(),
+	closeAboveEma20AboveEma50: z.boolean().optional(),
+	stochasticsKAbvoeD: z.boolean().optional()
+});
 export const insertNewFilter = async (
 	filter: z.infer<typeof filtersSchema>,
 	userId: string,

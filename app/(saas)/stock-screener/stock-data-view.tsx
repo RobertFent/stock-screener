@@ -3,8 +3,11 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import { filtersSchema } from '@/lib/actions';
-import { enrichedStockData, enrichedStockDataList } from '@/lib/db/queries';
+import {
+	enrichedStockData,
+	enrichedStockDataList,
+	filtersSchema
+} from '@/lib/db/queries';
 import { fetcher } from '@/lib/utils';
 import z from '@/node_modules/zod/v4/classic/external.cjs';
 import {

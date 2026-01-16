@@ -20,6 +20,7 @@ const iconMap: Record<ActivityType, LucideIcon> = {
 	[ActivityType.SIGN_OUT]: LogOut,
 	[ActivityType.UPDATE_ACCOUNT]: Settings,
 	[ActivityType.CREATE_TEAM]: UserPlus,
+	[ActivityType.DELETE_TEAM]: UserMinus,
 	[ActivityType.REMOVE_TEAM_MEMBER]: UserMinus,
 	[ActivityType.INVITE_TEAM_MEMBER]: Mail,
 	[ActivityType.ACCEPT_INVITATION]: CheckCircle,

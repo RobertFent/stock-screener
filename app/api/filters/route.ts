@@ -1,5 +1,5 @@
 import { withApiAuthAndTryCatch } from '@/lib/auth/middleware';
-import { getTeamForUser, selectAllFilters } from '@/lib/db/queries';
+import { getTeamForUser, selectAllFiltersByTeamId } from '@/lib/db/queries';
 import { Filter } from '@/lib/db/schema';
 import { NextResponse } from 'next/server';
 
@@ -18,6 +18,6 @@ export const GET = withApiAuthAndTryCatch<
 		);
 	}
 
-	const filters = await selectAllFilters(team.id);
+	const filters = await selectAllFiltersByTeamId(team.id);
 	return NextResponse.json(filters, { status: 200 });
 });
