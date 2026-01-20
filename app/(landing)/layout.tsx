@@ -8,7 +8,8 @@ import {
 	ClerkLoading,
 	SignedIn,
 	SignedOut,
-	SignInButton
+	SignInButton,
+	SignOutButton
 } from '@clerk/nextjs';
 
 const ClerkMenu = (): JSX.Element => {
@@ -21,7 +22,7 @@ const ClerkMenu = (): JSX.Element => {
 
 			<ClerkLoaded>
 				<SignedOut>
-					<SignInButton>
+					<SignInButton forceRedirectUrl='/stock-screener'>
 						<button className='bg-primary rounded-full font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 cursor-pointer'>
 							Sign In
 						</button>
@@ -34,6 +35,11 @@ const ClerkMenu = (): JSX.Element => {
 							Stock Screener
 						</span>
 					</Link>
+					<SignOutButton>
+						<span className='sm:ml-2 sm:text-xl font-semibold'>
+							Log Out
+						</span>
+					</SignOutButton>
 				</SignedIn>
 			</ClerkLoaded>
 		</>
