@@ -3,12 +3,7 @@
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Switch } from '@/components/ui/switch';
-import {
-	enrichedStockData,
-	enrichedStockDataList,
-	filtersSchema
-} from '@/lib/db/queries';
-import { fetcher } from '@/lib/utils';
+import { enrichedStockData, enrichedStockDataList } from '@/lib/db/queries';
 import z from '@/node_modules/zod/v4/classic/external.cjs';
 import {
 	Dispatch,
@@ -18,10 +13,21 @@ import {
 	useEffect,
 	useState
 } from 'react';
-import useSWR from 'swr';
-import { FilterBarSkeleton } from './skeletons';
 
-type Filters = z.infer<typeof filtersSchema>;
+type Filters = {
+	minVolume?: number;
+	macdIncreasing?: boolean;
+	macdLineAboveSignal?: boolean;
+	closeAboveEma20AboveEma50?: boolean;
+	stochasticsKAbvoeD?: boolean;
+	maxRSI?: number;
+	minIV?: number;
+	maxIV?: number;
+	minWillr?: number;
+	maxWillr?: number;
+	minStochK?: number;
+	maxStochK?: number;
+};
 
 const FilterRow = ({
 	filters,
@@ -47,31 +53,10 @@ const FilterRow = ({
 			};
 		});
 	};
-	const onSaveFilterPreset = (): void => {
-		// todo
-	};
+
 	return (
 		<div className='w-full rounded-xl border p-4 bg-card shadow-sm'>
-			<div className='flex flex-row gap-8'>
-				{/* // todo: https://www.shadcn.io/components/forms/combobox */}
-				<Input
-					type='text'
-					placeholder='Filter Name'
-					value={filters.name ?? ''}
-					onChange={(e) => {
-						setFilters((prev) => {
-							return {
-								...prev,
-								name: e.target.value
-							};
-						});
-					}}
-					className='max-w-[10vw]'
-				/>
-				<Button variant='outline' onClick={onSaveFilterPreset}>
-					Save Filter
-				</Button>
-			</div>
+			<h3 className='text-lg font-semibold mb-4'>Filters</h3>
 
 			{/* // todo: put into one component and re-use */}
 			<div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4'>
@@ -299,80 +284,65 @@ export default function StockDataView({
 }: {
 	stocks: z.infer<typeof enrichedStockDataList>;
 }): JSX.Element {
-	const { data: filters, isLoading: isLoadingFilters } = useSWR<Filters>(
-		'/api/filters',
-		fetcher
-	);
-
-	const [currentFilters, setCurrentFilters] = useState<Filters>({
-		name: 'default preset'
+	const [filters, setFilters] = useState<Filters>({
+		minVolume: 1000000,
+		maxRSI: 60,
+		minIV: 30,
+		maxIV: 70,
+		macdIncreasing: true,
+		closeAboveEma20AboveEma50: true
 	});
+
 	const [selectedStock, setSelectedStock] =
 		useState<z.infer<typeof enrichedStockData>>();
 
-	useEffect(() => {
-		if (filters) {
-			// eslint-disable-next-line react-hooks/set-state-in-effect
-			setCurrentFilters(filters);
-		}
-	}, [filters]);
-
 	// todo: simplify
 	const filteredStocks = stocks.filter((stock) => {
-		if (
-			currentFilters.minVolume &&
-			Number(stock.volume) < currentFilters.minVolume
-		) {
+		if (filters.minVolume && Number(stock.volume) < filters.minVolume) {
 			return false;
 		}
-		if (currentFilters.maxRSI && stock.rsi > currentFilters.maxRSI) {
+		if (filters.maxRSI && stock.rsi > filters.maxRSI) {
 			return false;
 		}
-		if (currentFilters.minIV && stock.iv < currentFilters.minIV) {
+		if (filters.minIV && stock.iv < filters.minIV) {
 			return false;
 		}
-		if (currentFilters.maxIV && stock.rsi > currentFilters.maxIV) {
+		if (filters.maxIV && stock.rsi > filters.maxIV) {
 			return false;
 		}
-		if (currentFilters.minWillr && stock.willr < currentFilters.minWillr) {
+		if (filters.minWillr && stock.willr < filters.minWillr) {
 			return false;
 		}
-		if (currentFilters.maxWillr && stock.willr > currentFilters.maxWillr) {
+		if (filters.maxWillr && stock.willr > filters.maxWillr) {
 			return false;
 		}
-		if (
-			currentFilters.minStochK &&
-			stock.stoch_percent_k < currentFilters.minStochK
-		) {
+		if (filters.minStochK && stock.stoch_percent_k < filters.minStochK) {
+			return false;
+		}
+		if (filters.maxStochK && stock.stoch_percent_k > filters.maxStochK) {
 			return false;
 		}
 		if (
-			currentFilters.maxStochK &&
-			stock.stoch_percent_k > currentFilters.maxStochK
-		) {
-			return false;
-		}
-		if (
-			currentFilters.macdIncreasing &&
+			filters.macdIncreasing &&
 			(stock.macd_line < stock.macd_line_prev_day ||
 				stock.macd_line_prev_day < stock.macd_line_prev_prev_day)
 		) {
 			return false;
 		}
 		if (
-			currentFilters.closeAboveEma20AboveEma50 &&
+			filters.closeAboveEma20AboveEma50 &&
 			(stock.close < stock.ema20 || stock.ema20 < stock.ema50)
 		) {
 			return false;
 		}
 		if (
-			currentFilters.macdLineAboveSignal &&
+			filters.macdLineAboveSignal &&
 			stock.macd_line <= stock.signal_line
 		) {
 			return false;
 		}
 		if (
-			currentFilters.stochasticsKAbvoeD &&
+			filters.stochasticsKAbvoeD &&
 			stock.stoch_percent_k <= stock.stoch_percent_d
 		) {
 			return false;
@@ -384,16 +354,7 @@ export default function StockDataView({
 	// todo: maybe put chart into server component
 	return (
 		<>
-			{isLoadingFilters ? (
-				<FilterBarSkeleton />
-			) : (
-				<>
-					<FilterRow
-						filters={currentFilters}
-						setFilters={setCurrentFilters}
-					/>
-				</>
-			)}
+			<FilterRow filters={filters} setFilters={setFilters}></FilterRow>
 
 			<div className='flex flex-col sm:flex-row gap-4 mt-6 max-h-[80vh]'>
 				<div className='sm:basis-1/4 h-[60vh] overflow-auto rounded-xl border p-4 bg-card shadow-sm'>
