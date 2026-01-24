@@ -9,7 +9,7 @@ import {
 	SignedIn,
 	SignedOut,
 	SignInButton,
-	SignOutButton
+	UserButton
 } from '@clerk/nextjs';
 
 const ClerkMenu = (): JSX.Element => {
@@ -35,11 +35,7 @@ const ClerkMenu = (): JSX.Element => {
 							Stock Screener
 						</span>
 					</Link>
-					<SignOutButton>
-						<span className='sm:ml-2 sm:text-xl font-semibold'>
-							Log Out
-						</span>
-					</SignOutButton>
+					<UserButton />
 				</SignedIn>
 			</ClerkLoaded>
 		</>
@@ -59,11 +55,6 @@ const Header = (): JSX.Element => {
 				</Link>
 				{/* right items */}
 				<div className='flex items-center space-x-4'>
-					<Link href='/'>
-						<span className='ml-4 sm:text-xl font-semibold'>
-							Home
-						</span>
-					</Link>
 					<Link href='/pricing'>
 						<span className='sm:ml-2 sm:text-xl font-semibold'>
 							Pricing

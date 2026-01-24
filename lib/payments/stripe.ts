@@ -131,7 +131,7 @@ export async function createCustomerPortalSession(
 
 	return stripe.billingPortal.sessions.create({
 		customer: userWithTeam.team.stripeCustomerId,
-		return_url: `${process.env.BASE_URL}/stock-screener/dashboard`,
+		return_url: `${process.env.BASE_URL}/stock-screener/settings`,
 		configuration: configuration.id
 	});
 }

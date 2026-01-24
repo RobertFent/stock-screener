@@ -24,11 +24,11 @@ const Header = (): JSX.Element => {
 						</span>
 					</Link>
 					<Link
-						href='/stock-screener/dashboard'
+						href='/stock-screener/settings'
 						className='flex items-center'
 					>
 						<span className='ml-4 sm:text-xl font-semibold'>
-							Dashboard
+							Settings
 						</span>
 					</Link>
 					<UserButton />

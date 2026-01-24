@@ -6,7 +6,7 @@ import { usePathname } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Users, Activity, Menu } from 'lucide-react';
 
-export default function DashboardLayout({
+export default function SettingsLayout({
 	children
 }: {
 	children: React.ReactNode;
@@ -15,9 +15,9 @@ export default function DashboardLayout({
 	const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
 	const navItems = [
-		{ href: '/stock-screener/dashboard', icon: Users, label: 'Team' },
+		{ href: '/stock-screener/settings', icon: Users, label: 'Team' },
 		{
-			href: '/stock-screener/dashboard/activity',
+			href: '/stock-screener/settings/activity',
 			icon: Activity,
 			label: 'Activity'
 		}

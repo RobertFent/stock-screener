@@ -25,7 +25,6 @@ export default function RootLayout({
 		<ClerkProvider>
 			<html lang='en' className={`${manrope.className}`}>
 				<body className='min-h-[100dvh]'>
-					{/* <header className='flex justify-end items-center p-4 gap-4 h-16'></header> */}
 					<SWRConfig
 						value={{
 							fallback: {
