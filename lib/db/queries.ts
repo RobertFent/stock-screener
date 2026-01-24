@@ -17,6 +17,7 @@ import {
 import { getCurrentAppUser } from '../auth/actions';
 import { logActivity } from '../serverFunctions';
 import { ActivityType, UserRole } from '../enums';
+import { FilterDBInput } from '../schemas/databaseSchemas';
 import z from 'zod';
 
 export const getUserByClerkId = async (
@@ -310,56 +311,26 @@ export const selectAllStocks = async (): Promise<
 	return allStocks;
 };
 
-// todo: check where to z.infer and where to use Filter type
-// todo: error handling
 export const selectAllFiltersByTeamId = async (
 	teamId: string
 ): Promise<Filter[]> => {
 	const allFilters = await db
 		.select()
 		.from(filters)
-		.where(eq(filters.teamId, teamId));
+		.where(and(eq(filters.teamId, teamId), isNull(filters.deletedAt)));
 
 	return allFilters;
 };
 
-export const filtersSchema = z.object({
-	name: z.string(),
-	minVolume: z.number().int().positive().optional(),
-	maxRSI: z.number().min(0).max(100).optional(),
-	minIV: z.number().min(0).max(100).optional(),
-	maxIV: z.number().min(0).max(100).optional(),
-	minWillr: z.number().min(-100).max(0).optional(),
-	maxWillr: z.number().min(-100).max(0).optional(),
-	minStochK: z.number().min(0).max(100).optional(),
-	maxStochK: z.number().min(0).max(100).optional(),
-	macdIncreasing: z.boolean().optional(),
-	macdLineAboveSignal: z.boolean().optional(),
-	closeAboveEma20AboveEma50: z.boolean().optional(),
-	stochasticsKAbvoeD: z.boolean().optional()
-});
 export const insertNewFilter = async (
-	filter: z.infer<typeof filtersSchema>,
+	filter: FilterDBInput,
 	userId: string,
 	teamId: string
 ): Promise<void> => {
-	// parse decimal numbers to string
-	const filterWithConvertedTypes = {
-		...filter,
-		minWillr: filter.minWillr?.toString(),
-		maxWillr: filter.maxWillr?.toString(),
-		minIV: filter.minIV?.toString(),
-		maxIV: filter.maxIV?.toString(),
-		maxRSI: filter.maxRSI?.toString(),
-		minStochK: filter.minStochK?.toString(),
-		maxStochK: filter.maxStochK?.toString()
-	};
-
 	const newFilter = await db
 		.insert(filters)
 		.values({
-			...filterWithConvertedTypes,
-			name: 'Untitled Filter',
+			...filter,
 			teamId: teamId,
 			userId: userId
 		})
@@ -368,4 +339,15 @@ export const insertNewFilter = async (
 	if (newFilter.length < 1) {
 		throw Error('Failed creating new filter');
 	}
+};
+
+export const deleteFilterById = async (filterId: string): Promise<void> => {
+	await db
+		.update(filters)
+		.set({ deletedAt: new Date() })
+		.where(and(eq(filters.id, filterId)));
+};
+
+export const updateDefaultFilter = async (_filterId: string): Promise<void> => {
+	// todo
 };

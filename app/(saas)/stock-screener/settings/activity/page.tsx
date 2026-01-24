@@ -24,7 +24,8 @@ const iconMap: Record<ActivityType, LucideIcon> = {
 	[ActivityType.REMOVE_TEAM_MEMBER]: UserMinus,
 	[ActivityType.INVITE_TEAM_MEMBER]: Mail,
 	[ActivityType.ACCEPT_INVITATION]: CheckCircle,
-	[ActivityType.ADD_FILTER]: CheckCircle // todo
+	[ActivityType.ADD_FILTER]: CheckCircle, // todo
+	[ActivityType.DELETE_FILTER]: CheckCircle // todo
 };
 
 const getRelativeTime = (date: Date): string => {

@@ -140,9 +140,11 @@ launch in dev mode
 pnpm dev
 ```
 
-# TODO
+# TODO (in this order)
 
-- filter saving
-- decide which indicators to use (checkbox)
-- fix color schema (pull shadcn element and check the default colors)
+- performance improvement for stock-screener or at least proper loading
+- add version to footer
 - add initial working version and then move to development branch after release 1
+- move todos into trello
+- clerk enable sso on prod
+- decide which indicators to use (checkbox)

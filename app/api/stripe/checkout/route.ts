@@ -106,7 +106,7 @@ export const GET = withApiAuthAndTryCatch<[NextRequest], unknown>(
 				.where(eq(teams.id, userTeam[0].teamId));
 
 			return NextResponse.redirect(
-				new URL('/stock-screener/dashboard', request.url)
+				new URL('/stock-screener/settings', request.url)
 			);
 		} catch (error) {
 			log.error(`Error during stripe checkout: ${formatError(error)}`);

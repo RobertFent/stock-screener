@@ -12,11 +12,13 @@ import { ActivityType, UserRole } from './enums';
 import {
 	addUserToTeam,
 	createTeam,
+	deleteFilterById,
 	deleteTeamMember,
-	filtersSchema,
 	insertNewFilter
 } from './db/queries';
 import { formatError } from './formatters';
+import { filtersFormSchema } from './schemas/formSchemas';
+import { parseFilterFormToDBForm } from './schemas/parsers';
 
 const log = logger.child({
 	server: 'action'
@@ -136,10 +138,15 @@ export const inviteTeamMember = validatedActionWithUserAndTeamId(
 );
 
 export const saveFilter = validatedActionWithUserAndTeamId(
-	filtersSchema,
+	filtersFormSchema,
 	async (data, _, userWithTeam) => {
 		try {
-			insertNewFilter(data, userWithTeam.user.id, userWithTeam.teamId);
+			const parsedFilter = parseFilterFormToDBForm(data);
+			await insertNewFilter(
+				parsedFilter,
+				userWithTeam.user.id,
+				userWithTeam.teamId
+			);
 			await logActivity(
 				userWithTeam.teamId,
 				userWithTeam.user.id,
@@ -149,6 +156,27 @@ export const saveFilter = validatedActionWithUserAndTeamId(
 		} catch (error) {
 			log.error(formatError(error));
 			return { error: 'Failed to save filter' };
+		}
+	}
+);
+
+const deleteFilterSchema = z.object({
+	id: z.string('Invalid filter id')
+});
+export const deleteFilter = validatedActionWithUserAndTeamId(
+	deleteFilterSchema,
+	async (data, _, userWithTeam) => {
+		try {
+			deleteFilterById(data.id);
+			await logActivity(
+				userWithTeam.teamId,
+				userWithTeam.user.id,
+				ActivityType.DELETE_FILTER
+			);
+			return { success: 'Filter deleted successfully' };
+		} catch (error) {
+			log.error(formatError(error));
+			return { error: 'Failed to delete filter' };
 		}
 	}
 );

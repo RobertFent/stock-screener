@@ -5,8 +5,8 @@ import {
 	text,
 	timestamp,
 	bigint,
-	decimal,
-	boolean
+	boolean,
+	integer
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -63,13 +63,13 @@ export const filters = pgTable('filters', {
 		}),
 	name: varchar('name', { length: 255 }).notNull(),
 	minVolume: bigint('min_volume', { mode: 'number' }),
-	maxRsi: decimal('max_rsi', { precision: 5, scale: 2 }),
-	minIv: decimal('min_iv', { precision: 5, scale: 2 }),
-	maxIv: decimal('max_iv', { precision: 5, scale: 2 }),
-	minWillr: decimal('min_willr', { precision: 5, scale: 2 }),
-	maxWillr: decimal('max_willr', { precision: 5, scale: 2 }),
-	minStochK: decimal('min_stoch_k', { precision: 5, scale: 2 }),
-	maxStochK: decimal('max_stoch_k', { precision: 5, scale: 2 }),
+	maxRSI: integer('max_rsi'),
+	minIV: integer('min_iv'),
+	maxIV: integer('max_iv'),
+	minWillr: integer('min_willr'),
+	maxWillr: integer('max_willr'),
+	minStochK: integer('min_stoch_k'),
+	maxStochK: integer('max_stoch_k'),
 	macdIncreasing: boolean('macd_increasing').default(false),
 	macdLineAboveSignal: boolean('macd_line_above_signal').default(false),
 	closeAboveEma20AboveEma50: boolean('close_above_ema20_above_ema50').default(

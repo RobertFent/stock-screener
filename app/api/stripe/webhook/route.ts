@@ -36,6 +36,7 @@ export async function POST(request: NextRequest): Promise<Response> {
 		);
 	}
 
+	// todo: subscription.created may not be necessary
 	switch (event.type) {
 		case 'customer.subscription.created':
 		case 'customer.subscription.updated':
