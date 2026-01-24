@@ -357,27 +357,25 @@ export default function StockDataView({
 			<FilterRow filters={filters} setFilters={setFilters}></FilterRow>
 
 			<div className='flex flex-col sm:flex-row gap-4 mt-6 max-h-[80vh]'>
-				<div className='sm:basis-1/4 h-[60vh] overflow-auto rounded-xl border p-4 bg-card shadow-sm'>
-					<>
-						{/* todo: make header sticky  */}
-						<h1 className='text-center mt-6 mb-4'>
-							Matching Symbols
-						</h1>
-						{filteredStocks.map((stock) => {
-							return (
-								<Button
-									variant='outline'
-									key={stock.id}
-									className='w-full mb-2'
-									onClick={() => {
-										setSelectedStock(stock);
-									}}
-								>
-									{stock.ticker}
-								</Button>
-							);
-						})}
-					</>
+				<div className='sm:basis-1/4 min-h-[20vh] overflow-auto rounded-xl border p-4 bg-card shadow-sm'>
+					{/* todo: make header sticky  */}
+					<h1 className='text-center sm:mt-6 mb-4'>
+						Matching Symbols
+					</h1>
+					{filteredStocks.map((stock) => {
+						return (
+							<Button
+								variant='outline'
+								key={stock.id}
+								className='w-full mb-2'
+								onClick={() => {
+									setSelectedStock(stock);
+								}}
+							>
+								{stock.ticker}
+							</Button>
+						);
+					})}
 				</div>
 				<div className='sm:basis-3/4 text-center sm:overflow-auto'>
 					{selectedStock ? (
