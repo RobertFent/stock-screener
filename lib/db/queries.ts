@@ -65,6 +65,17 @@ export const updateTeamSubscription = async (
 		.where(eq(teams.id, teamId));
 };
 
+export const getTeamSubscriptionByTeamId = async (
+	teamId: string
+): Promise<string | null> => {
+	const team = await db
+		.select({ planName: teams.planName })
+		.from(teams)
+		.where(eq(teams.id, teamId));
+
+	return team.length > 0 ? team[0].planName : null;
+};
+
 export const getUserWithTeam = async (
 	userId: string
 ): Promise<UserWithTeamId | null> => {
@@ -326,7 +337,7 @@ export const insertNewFilter = async (
 	filter: FilterDBInput,
 	userId: string,
 	teamId: string
-): Promise<void> => {
+): Promise<string> => {
 	const newFilter = await db
 		.insert(filters)
 		.values({
@@ -339,6 +350,8 @@ export const insertNewFilter = async (
 	if (newFilter.length < 1) {
 		throw Error('Failed creating new filter');
 	}
+	// todo: cleaner
+	return newFilter[0].id;
 };
 
 export const deleteFilterById = async (filterId: string): Promise<void> => {
@@ -348,6 +361,16 @@ export const deleteFilterById = async (filterId: string): Promise<void> => {
 		.where(and(eq(filters.id, filterId)));
 };
 
-export const updateDefaultFilter = async (_filterId: string): Promise<void> => {
-	// todo
+export const updateDefaultFilterById = async (
+	filterId: string,
+	teamId: string
+): Promise<void> => {
+	await db
+		.update(filters)
+		.set({ isDefault: false })
+		.where(and(eq(filters.teamId, teamId)));
+	await db
+		.update(filters)
+		.set({ isDefault: true })
+		.where(and(eq(filters.id, filterId)));
 };

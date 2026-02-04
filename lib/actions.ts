@@ -8,13 +8,16 @@ import { users, teamMembers } from '@/lib/db/schema';
 import { logger } from '@/lib/logger';
 import { logActivity } from './serverFunctions';
 import { sendInvitation } from './auth/actions';
-import { ActivityType, UserRole } from './enums';
+import { ActivityType, StripPlan, UserRole } from './enums';
 import {
 	addUserToTeam,
 	createTeam,
 	deleteFilterById,
 	deleteTeamMember,
-	insertNewFilter
+	getTeamSubscriptionByTeamId,
+	insertNewFilter,
+	selectAllFiltersByTeamId,
+	updateDefaultFilterById
 } from './db/queries';
 import { formatError } from './formatters';
 import { filtersFormSchema } from './schemas/formSchemas';
@@ -141,8 +144,29 @@ export const saveFilter = validatedActionWithUserAndTeamId(
 	filtersFormSchema,
 	async (data, _, userWithTeam) => {
 		try {
+			const [alreadyExistingFilters, teamPlan] = await Promise.all([
+				selectAllFiltersByTeamId(userWithTeam.teamId),
+				getTeamSubscriptionByTeamId(userWithTeam.teamId)
+			]);
+			if (
+				teamPlan !== StripPlan.BASE &&
+				alreadyExistingFilters.length >= 3
+			) {
+				return {
+					error: 'You have already 3 filters saved. If you want to save more then 3 filters please upgrade your plan',
+					filterId: null
+				};
+			} else if (
+				teamPlan === StripPlan.BASE &&
+				alreadyExistingFilters.length >= 10
+			) {
+				return {
+					error: 'You have already 10 filters saved which is currently the maximum allowed amount.',
+					filterId: null
+				};
+			}
 			const parsedFilter = parseFilterFormToDBForm(data);
-			await insertNewFilter(
+			const newFilterId = await insertNewFilter(
 				parsedFilter,
 				userWithTeam.user.id,
 				userWithTeam.teamId
@@ -152,10 +176,13 @@ export const saveFilter = validatedActionWithUserAndTeamId(
 				userWithTeam.user.id,
 				ActivityType.ADD_FILTER
 			);
-			return { success: 'Filter saved successfully' };
+			return {
+				success: 'Filter saved successfully',
+				filterId: newFilterId
+			};
 		} catch (error) {
 			log.error(formatError(error));
-			return { error: 'Failed to save filter' };
+			return { error: 'Failed to save filter', filterId: null };
 		}
 	}
 );
@@ -177,6 +204,22 @@ export const deleteFilter = validatedActionWithUserAndTeamId(
 		} catch (error) {
 			log.error(formatError(error));
 			return { error: 'Failed to delete filter' };
+		}
+	}
+);
+
+const updateDefaultFilterSchema = z.object({
+	id: z.string('Invalid filter id')
+});
+export const updateDefaultFilter = validatedActionWithUserAndTeamId(
+	updateDefaultFilterSchema,
+	async (data, _, userWithTeam) => {
+		try {
+			updateDefaultFilterById(data.id, userWithTeam.teamId);
+			return { success: 'Default filter updated' };
+		} catch (error) {
+			log.error(formatError(error));
+			return { error: 'Failed to update default filter' };
 		}
 	}
 );

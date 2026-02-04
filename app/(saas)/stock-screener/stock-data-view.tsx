@@ -13,10 +13,10 @@ import {
 	useCallback,
 	useEffect,
 	useMemo,
+	useRef,
 	useState
 } from 'react';
 import useSWR, { mutate } from 'swr';
-import { FilterBarSkeleton } from './skeletons';
 import {
 	Command,
 	CommandGroup,
@@ -37,14 +37,16 @@ import {
 } from 'lucide-react';
 import React from 'react';
 import z from 'zod';
-import { deleteFilter, saveFilter } from '@/lib/actions';
+import { deleteFilter, saveFilter, updateDefaultFilter } from '@/lib/actions';
 import { ActionState } from '@/lib/auth/middleware';
 import { Switch } from '@/components/ui/switch';
 import { Filter } from '@/lib/db/schema';
 
 // todo: check where to put this type
 type FilterUI = {
+	id: string | null;
 	name: string;
+	createdAt: string | null;
 	minVolume: number | null;
 	maxRSI: number | null;
 	minIV: number | null;
@@ -59,7 +61,7 @@ type FilterUI = {
 	stochasticsKAboveD: boolean;
 };
 
-type LastAction = 'save' | 'delete' | null;
+type LastAction = 'save' | 'delete' | 'updateDefault' | null;
 
 const parseFilterUIToFormData = (filter: FilterUI): FormData => {
 	const fd = new FormData();
@@ -114,47 +116,83 @@ const parseFilterUIToFormData = (filter: FilterUI): FormData => {
 	return fd;
 };
 
+// todo: maybe do this in a more elegant way
+const parseFilterDBObjectToFilterUI = (filter: Filter): FilterUI => {
+	return {
+		id: filter.id,
+		name: filter.name,
+		createdAt: new Date(filter.createdAt).toISOString(),
+		minVolume: filter.minVolume,
+		maxRSI: filter.maxRSI,
+		minIV: filter.minIV,
+		maxIV: filter.maxIV,
+		minWillr: filter.minWillr,
+		maxWillr: filter.maxWillr,
+		minStochK: filter.minStochK,
+		maxStochK: filter.maxStochK,
+		macdIncreasing: filter.macdIncreasing ?? false,
+		macdLineAboveSignal: filter.macdLineAboveSignal ?? false,
+		closeAboveEma20AboveEma50: filter.closeAboveEma20AboveEma50 ?? false,
+		stochasticsKAboveD: filter.stochasticsKAboveD ?? false
+	};
+};
+
 const SelectFilterCombobox = ({
 	allFilters,
+	isLoadingAllFilters,
 	currentFilter,
 	setCurrentFilter,
 	saveFilterAction,
 	deleteFilterAction,
+	updateDefaultFilterAction,
 	setLastAction
 }: {
 	allFilters: Filter[];
+	isLoadingAllFilters: boolean;
 	currentFilter: FilterUI;
 	setCurrentFilter: Dispatch<SetStateAction<FilterUI>>;
 	saveFilterAction: (payload: FormData) => void;
 	deleteFilterAction: (payload: FormData) => void;
+	updateDefaultFilterAction: (payload: FormData) => void;
 	setLastAction: Dispatch<SetStateAction<LastAction>>;
 }): JSX.Element => {
 	const [open, setOpen] = React.useState(false);
-	const [selectedFilterId, setSelectedFilterId] = React.useState('');
+
+	const sortedFilters = allFilters.sort((a, b) => {
+		// despite Date type is createdAt an ISO string
+		return (
+			new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+		);
+	});
+
+	// make the filter name fix so that changing the filter name input does not change the displayed name
+	const fixFilterName = allFilters.find((filter) => {
+		return filter.id === currentFilter.id;
+	})?.name;
 
 	return (
 		<>
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger asChild>
-					<Button
-						variant='outline'
-						role='combobox'
-						aria-expanded={open}
-						className='w-[200px] justify-between'
-					>
-						{selectedFilterId
-							? (allFilters.find((filter) => {
-									return filter.id === selectedFilterId;
-								})?.name ?? 'Select filter preset...')
-							: 'Select filter preset...'}
-						<ChevronsUpDownIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-					</Button>
+					{isLoadingAllFilters ? (
+						<div className='w-[200px] h-9 rounded-md bg-muted animate-pulse' />
+					) : (
+						<Button
+							variant='outline'
+							role='combobox'
+							aria-expanded={open}
+							className='w-[200px] justify-between'
+						>
+							{fixFilterName ?? 'Select filter preset...'}
+							<ChevronsUpDownIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+						</Button>
+					)}
 				</PopoverTrigger>
 				<PopoverContent className='w-[200px] p-0'>
 					<Command>
 						<CommandList>
 							<CommandGroup>
-								{allFilters.map((filter) => {
+								{sortedFilters.map((filter) => {
 									return (
 										<div
 											key={filter.id}
@@ -163,30 +201,25 @@ const SelectFilterCombobox = ({
 											<CommandItem
 												key={filter.id}
 												value={filter.id}
-												onSelect={(currentValue) => {
-													setSelectedFilterId(
-														currentValue ===
-															selectedFilterId
-															? ''
-															: currentValue
-													);
+												onSelect={() => {
 													setOpen(false);
-													// todo: enough?
 													setCurrentFilter(
-														filter as FilterUI
+														parseFilterDBObjectToFilterUI(
+															filter
+														)
 													);
 												}}
 												className='w-[100%]'
 											>
 												<Button
 													variant={
-														selectedFilterId ===
+														currentFilter.id ===
 														filter.id
 															? 'secondary'
 															: 'ghost'
 													}
 													className={`w-full justify-start ${
-														selectedFilterId ===
+														currentFilter.id ===
 														filter.id
 															? 'bg-secondary'
 															: ''
@@ -199,10 +232,26 @@ const SelectFilterCombobox = ({
 												<Button
 													variant='link'
 													onClick={() => {
-														// todo
+														setLastAction(
+															'updateDefault'
+														);
+														const fd =
+															new FormData();
+														fd.set('id', filter.id);
+														startTransition(() => {
+															updateDefaultFilterAction(
+																fd
+															);
+														});
 													}}
 												>
-													<StarIcon />
+													<StarIcon
+														fill={
+															filter.isDefault
+																? 'gold'
+																: 'none'
+														}
+													/>
 												</Button>
 												<Button
 													variant='link'
@@ -248,7 +297,6 @@ const SelectFilterCombobox = ({
 											startTransition(() => {
 												saveFilterAction(fd);
 											});
-											setSelectedFilterId('');
 										}}
 									>
 										<SaveIcon />
@@ -263,11 +311,76 @@ const SelectFilterCombobox = ({
 	);
 };
 
+const FilterNumberInput = ({
+	label,
+	filterValue,
+	filterKey,
+	setCurrentFilter
+}: {
+	label: string;
+	filterValue: number | null;
+	filterKey: string;
+	setCurrentFilter: Dispatch<SetStateAction<FilterUI>>;
+}): JSX.Element => {
+	return (
+		<div className='flex flex-col space-y-1'>
+			<label className='text-sm font-medium text-muted-foreground'>
+				{label}
+			</label>
+			<Input
+				type='number'
+				placeholder={'-'}
+				value={filterValue ?? ''}
+				onChange={(e) => {
+					const value = e.target.value === '' ? null : e.target.value;
+					setCurrentFilter((prevFilters) => {
+						return {
+							...prevFilters,
+							[filterKey]: value
+						};
+					});
+				}}
+			/>
+		</div>
+	);
+};
+
+const FilterSwitchInput = ({
+	label,
+	checked,
+	filterKey,
+	setCurrentFilter
+}: {
+	label: string;
+	checked: boolean;
+	filterKey: string;
+	setCurrentFilter: Dispatch<SetStateAction<FilterUI>>;
+}): JSX.Element => {
+	return (
+		<label className='flex items-center gap-2 text-sm'>
+			<Switch
+				checked={checked}
+				onCheckedChange={(checked) => {
+					setCurrentFilter((prevFilters) => {
+						return {
+							...prevFilters,
+							[filterKey]: checked
+						};
+					});
+				}}
+			/>
+			{label}
+		</label>
+	);
+};
+
 const FilterRow = ({
+	isLoadingAllFilters,
 	allFilters,
 	currentFilter,
 	setCurrentFilter
 }: {
+	isLoadingAllFilters: boolean;
 	allFilters: Filter[];
 	currentFilter: FilterUI;
 	setCurrentFilter: Dispatch<SetStateAction<FilterUI>>;
@@ -276,6 +389,11 @@ const FilterRow = ({
 		useActionState<ActionState, FormData>(saveFilter, {});
 	const [deleteFilterState, deleteFilterAction, isDeleteFilterPending] =
 		useActionState<ActionState, FormData>(deleteFilter, {});
+	const [
+		updateDefaultFilterState,
+		updateDefaultFilterAction,
+		isUpdateDefaultFilterPending
+	] = useActionState<ActionState, FormData>(updateDefaultFilter, {});
 
 	const [shouldDisplayActionState, setShouldDisplayActionState] =
 		useState<boolean>(false);
@@ -287,263 +405,201 @@ const FilterRow = ({
 			(saveFilterState.success ||
 				saveFilterState.error ||
 				deleteFilterState.success ||
-				deleteFilterState.error) &&
+				deleteFilterState.error ||
+				updateDefaultFilterState.success ||
+				updateDefaultFilterState.error) &&
 			!isSaveFilterPending &&
-			!isDeleteFilterPending
+			!isDeleteFilterPending &&
+			!isUpdateDefaultFilterPending
 		) {
 			// eslint-disable-next-line react-hooks/set-state-in-effect
 			setShouldDisplayActionState(true);
 			setTimeout(() => {
 				setShouldDisplayActionState(false);
-			}, 2000);
+			}, 3000);
 		}
 	}, [
 		saveFilterState,
 		deleteFilterState,
+		updateDefaultFilterState,
 		isDeleteFilterPending,
-		isSaveFilterPending
+		isSaveFilterPending,
+		isUpdateDefaultFilterPending
 	]);
 
-	const onInputChange = (
-		target: HTMLInputElement,
-		key: string,
-		castToNumber?: boolean
-	): void => {
-		const value =
-			target.value === ''
-				? null
-				: castToNumber
-					? Number(target.value)
-					: target.value;
-		setCurrentFilter((prevFilters) => {
-			return {
-				...prevFilters,
-				[key]: value
-			};
-		});
-	};
-
-	const onCheckboxChange = (value: boolean, key: string): void => {
-		setCurrentFilter((prevFilters) => {
-			return {
-				...prevFilters,
-				[key]: value
-			};
-		});
-	};
-
 	useEffect(() => {
-		if (saveFilterState.success || deleteFilterState.success) {
+		if (
+			saveFilterState.success ||
+			deleteFilterState.success ||
+			updateDefaultFilterState.success
+		) {
 			mutate('/api/filters');
 		}
-	}, [saveFilterState, deleteFilterState]);
+	}, [saveFilterState, deleteFilterState, updateDefaultFilterState]);
+
+	useEffect(() => {
+		if (saveFilterState.filterId) {
+			const newFilter = allFilters.find((filter) => {
+				return filter.id === saveFilterState.filterId;
+			});
+			if (newFilter) {
+				setCurrentFilter(parseFilterDBObjectToFilterUI(newFilter));
+			}
+		}
+	}, [allFilters, saveFilterState, setCurrentFilter]);
 
 	return (
 		<div className='w-full rounded-xl border p-4 bg-card shadow-sm'>
-			<div className='flex flex-row gap-2 items-center'>
+			<div className='flex flex-row gap-2 items-center h-10'>
 				<SelectFilterCombobox
 					allFilters={allFilters}
+					isLoadingAllFilters={isLoadingAllFilters}
 					currentFilter={currentFilter}
 					setCurrentFilter={setCurrentFilter}
 					saveFilterAction={saveFilterAction}
 					deleteFilterAction={deleteFilterAction}
+					updateDefaultFilterAction={updateDefaultFilterAction}
 					setLastAction={setLastAction}
 				/>
-				{(isSaveFilterPending || isDeleteFilterPending) && (
-					<Loader2 className='h-4 w-4 animate-spin' />
-				)}
-				{shouldDisplayActionState &&
-					lastAction === 'save' &&
-					saveFilterState.error && (
-						<p className='text-red-500'>{saveFilterState.error}</p>
+				<div className='h-full'>
+					{(isSaveFilterPending ||
+						isDeleteFilterPending ||
+						isUpdateDefaultFilterPending) && (
+						<Loader2 className='h-4 w-4 animate-spin' />
 					)}
-				{shouldDisplayActionState &&
-					lastAction === 'save' &&
-					saveFilterState.success && (
-						<p className='text-green-500'>
-							{saveFilterState.success}
-						</p>
-					)}
-				{shouldDisplayActionState &&
-					lastAction === 'delete' &&
-					deleteFilterState.error && (
-						<p className='text-red-500'>
-							{deleteFilterState.error}
-						</p>
-					)}
-				{shouldDisplayActionState &&
-					lastAction === 'delete' &&
-					deleteFilterState.success && (
-						<p className='text-green-500'>
-							{deleteFilterState.success}
-						</p>
-					)}
-			</div>
-			{/* // todo: put into one component and re-use */}
-			<div className='grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4'>
-				{/* --- Volume --- */}
-				<div className='flex flex-col space-y-1'>
-					<label className='text-sm font-medium text-muted-foreground'>
-						Min. Volume
-					</label>
-					<Input
-						type='number'
-						placeholder='-'
-						value={currentFilter.minVolume ?? ''}
-						onChange={(e) => {
-							return onInputChange(e.target, 'minVolume', true);
-						}}
-					/>
+					{shouldDisplayActionState &&
+						lastAction === 'save' &&
+						saveFilterState.error && (
+							<p className='text-red-500'>
+								{saveFilterState.error}
+							</p>
+						)}
+					{shouldDisplayActionState &&
+						lastAction === 'save' &&
+						saveFilterState.success && (
+							<p className='text-green-500'>
+								{saveFilterState.success}
+							</p>
+						)}
+					{shouldDisplayActionState &&
+						lastAction === 'delete' &&
+						deleteFilterState.error && (
+							<p className='text-red-500'>
+								{deleteFilterState.error}
+							</p>
+						)}
+					{shouldDisplayActionState &&
+						lastAction === 'delete' &&
+						deleteFilterState.success && (
+							<p className='text-green-500'>
+								{deleteFilterState.success}
+							</p>
+						)}
+					{shouldDisplayActionState &&
+						lastAction === 'updateDefault' &&
+						updateDefaultFilterState.error && (
+							<p className='text-red-500'>
+								{updateDefaultFilterState.error}
+							</p>
+						)}
+					{shouldDisplayActionState &&
+						lastAction === 'updateDefault' &&
+						updateDefaultFilterState.success && (
+							<p className='text-green-500'>
+								{updateDefaultFilterState.success}
+							</p>
+						)}
 				</div>
+			</div>
+			<div className='mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+				{/* --- Volume --- */}
+				<FilterNumberInput
+					label='Min. Volume'
+					filterValue={currentFilter.minVolume}
+					filterKey='minVolume'
+					setCurrentFilter={setCurrentFilter}
+				/>
 
 				{/* --- RSI --- */}
-				<div className='flex flex-col space-y-1'>
-					<label className='text-sm font-medium text-muted-foreground'>
-						Max. RSI
-					</label>
-					<Input
-						type='number'
-						placeholder='-'
-						value={currentFilter.maxRSI ?? ''}
-						onChange={(e) => {
-							return onInputChange(e.target, 'maxRSI');
-						}}
-					/>
-				</div>
+				<FilterNumberInput
+					label='Max. RSI'
+					filterValue={currentFilter.maxRSI}
+					filterKey='maxRSI'
+					setCurrentFilter={setCurrentFilter}
+				/>
 
 				{/* --- IV --- */}
-				<div className='flex flex-col space-y-1'>
-					<label className='text-sm font-medium text-muted-foreground'>
-						Min. IV
-					</label>
-					<Input
-						type='number'
-						placeholder='-'
-						value={currentFilter.minIV ?? ''}
-						onChange={(e) => {
-							return onInputChange(e.target, 'minIV');
-						}}
-					/>
-				</div>
-
-				<div className='flex flex-col space-y-1'>
-					<label className='text-sm font-medium text-muted-foreground'>
-						Max. IV
-					</label>
-					<Input
-						type='number'
-						placeholder='-'
-						value={currentFilter.maxIV ?? ''}
-						onChange={(e) => {
-							return onInputChange(e.target, 'maxIV');
-						}}
-					/>
-				</div>
+				<FilterNumberInput
+					label='Min. IV'
+					filterValue={currentFilter.minIV}
+					filterKey='minIV'
+					setCurrentFilter={setCurrentFilter}
+				/>
+				<FilterNumberInput
+					label='Max. IV'
+					filterValue={currentFilter.maxIV}
+					filterKey='maxIV'
+					setCurrentFilter={setCurrentFilter}
+				/>
 
 				{/* --- WILLR --- */}
-				<div className='flex flex-col space-y-1'>
-					<label className='text-sm font-medium text-muted-foreground'>
-						Min. Williams %R
-					</label>
-					<Input
-						type='number'
-						placeholder='-'
-						value={currentFilter.minWillr ?? ''}
-						onChange={(e) => {
-							return onInputChange(e.target, 'minWillr');
-						}}
-					/>
-				</div>
-				<div className='flex flex-col space-y-1'>
-					<label className='text-sm font-medium text-muted-foreground'>
-						Max. Williams %R
-					</label>
-					<Input
-						type='number'
-						placeholder='-'
-						value={currentFilter.maxWillr ?? ''}
-						onChange={(e) => {
-							return onInputChange(e.target, 'maxWillr');
-						}}
-					/>
-				</div>
+				<FilterNumberInput
+					label='Min. Williams %R'
+					filterValue={currentFilter.minWillr}
+					filterKey='minWillr'
+					setCurrentFilter={setCurrentFilter}
+				/>
+				<FilterNumberInput
+					label='Max. Williams %R'
+					filterValue={currentFilter.maxWillr}
+					filterKey='maxWillr'
+					setCurrentFilter={setCurrentFilter}
+				/>
 
 				{/* --- Stochastics --- */}
-				<div className='flex flex-col space-y-1'>
-					<label className='text-sm font-medium text-muted-foreground'>
-						Min. Stochastics %K
-					</label>
-					<Input
-						type='number'
-						placeholder='-'
-						value={currentFilter.minStochK ?? ''}
-						onChange={(e) => {
-							return onInputChange(e.target, 'minStochK');
-						}}
-					/>
-				</div>
-				<div className='flex flex-col space-y-1'>
-					<label className='text-sm font-medium text-muted-foreground'>
-						Max. Stochastics %K
-					</label>
-					<Input
-						type='number'
-						placeholder='-'
-						value={currentFilter.maxStochK ?? ''}
-						onChange={(e) => {
-							return onInputChange(e.target, 'maxStochK');
-						}}
-					/>
-				</div>
+				<FilterNumberInput
+					label='Min. Stochastics %K'
+					filterValue={currentFilter.minStochK}
+					filterKey='minStochK'
+					setCurrentFilter={setCurrentFilter}
+				/>
+				<FilterNumberInput
+					label='Max. Stochastics %K'
+					filterValue={currentFilter.maxStochK}
+					filterKey='maxStochK'
+					setCurrentFilter={setCurrentFilter}
+				/>
 			</div>
 
 			{/* --- SWITCHES --- */}
-			{/* // todo: put into one component and re-use */}
 			<div className='mt-6 flex flex-col md:flex-row md:items-center gap-4'>
-				<label className='flex items-center gap-2 text-sm'>
-					<Switch
-						checked={
-							currentFilter.closeAboveEma20AboveEma50 ?? false
-						}
-						onCheckedChange={(v) => {
-							return onCheckboxChange(
-								v,
-								'closeAboveEma20AboveEma50'
-							);
-						}}
-					/>
-					Close &gt; EMA20 &gt; EMA50
-				</label>
+				<FilterSwitchInput
+					label='Close &gt; EMA20 &gt; EMA50'
+					checked={currentFilter.closeAboveEma20AboveEma50}
+					filterKey='closeAboveEma20AboveEma50'
+					setCurrentFilter={setCurrentFilter}
+				/>
 
-				<label className='flex items-center gap-2 text-sm'>
-					<Switch
-						checked={currentFilter.macdIncreasing ?? false}
-						onCheckedChange={(v) => {
-							return onCheckboxChange(v, 'macdIncreasing');
-						}}
-					/>
-					MACD increasing (last 3 days)
-				</label>
+				<FilterSwitchInput
+					label='MACD increasing (last 3 days)'
+					checked={currentFilter.macdIncreasing}
+					filterKey='macdIncreasing'
+					setCurrentFilter={setCurrentFilter}
+				/>
 
-				<label className='flex items-center gap-2 text-sm'>
-					<Switch
-						checked={currentFilter.macdLineAboveSignal ?? false}
-						onCheckedChange={(v) => {
-							return onCheckboxChange(v, 'macdLineAboveSignal');
-						}}
-					/>
-					MACD line above signal line
-				</label>
+				<FilterSwitchInput
+					label='MACD line above signal line'
+					checked={currentFilter.macdLineAboveSignal}
+					filterKey='macdLineAboveSignal'
+					setCurrentFilter={setCurrentFilter}
+				/>
 
-				<label className='flex items-center gap-2 text-sm'>
-					<Switch
-						checked={currentFilter.stochasticsKAboveD ?? false}
-						onCheckedChange={(v) => {
-							return onCheckboxChange(v, 'stochasticsKAboveD');
-						}}
-					/>
-					Stochastics K% above D%
-				</label>
+				<FilterSwitchInput
+					label='Stochastics K% above D%'
+					checked={currentFilter.stochasticsKAboveD}
+					filterKey='stochasticsKAboveD'
+					setCurrentFilter={setCurrentFilter}
+				/>
 			</div>
 		</div>
 	);
@@ -610,8 +666,12 @@ export default function StockDataView({
 	const { data: allFilters, isLoading: isLoadingAllFilters } = useSWR<
 		Filter[]
 	>('/api/filters', fetcher);
+	const isInitialFilterSet = useRef(false);
+	// initial blank state
 	const [currentFilter, setCurrentFilter] = useState<FilterUI>({
+		id: null,
 		name: 'default filter',
+		createdAt: new Date().toISOString(),
 		minVolume: null,
 		maxRSI: null,
 		minIV: null,
@@ -630,10 +690,20 @@ export default function StockDataView({
 
 	// Sync once SWR resolves
 	useEffect(() => {
+		if (isInitialFilterSet.current) {
+			return;
+		}
+
 		if (allFilters && allFilters.length > 0) {
-			// todo: currently use first filter -> change to default filter
+			const defaultFilter = allFilters.find((filter) => {
+				return filter.isDefault;
+			});
 			// eslint-disable-next-line react-hooks/set-state-in-effect
-			setCurrentFilter(allFilters[0] as unknown as FilterUI);
+			setCurrentFilter(
+				parseFilterDBObjectToFilterUI(defaultFilter ?? allFilters[0])
+			);
+
+			isInitialFilterSet.current = true;
 		}
 	}, [allFilters]);
 
@@ -669,28 +739,28 @@ export default function StockDataView({
 
 			if (
 				currentFilter.minWillr !== null &&
-				stock.iv > currentFilter.minWillr
+				stock.willr > currentFilter.minWillr
 			) {
 				return false;
 			}
 
 			if (
 				currentFilter.maxWillr !== null &&
-				stock.iv > currentFilter.maxWillr
+				stock.willr < currentFilter.maxWillr
 			) {
 				return false;
 			}
 
 			if (
 				currentFilter.minStochK !== null &&
-				stock.iv > currentFilter.minStochK
+				stock.stoch_percent_k > currentFilter.minStochK
 			) {
 				return false;
 			}
 
 			if (
 				currentFilter.maxStochK !== null &&
-				stock.iv > currentFilter.maxStochK
+				stock.stoch_percent_k > currentFilter.maxStochK
 			) {
 				return false;
 			}
@@ -732,18 +802,15 @@ export default function StockDataView({
 	// todo: maybe put chart into server component
 	return (
 		<>
-			{isLoadingAllFilters ? (
-				<FilterBarSkeleton />
-			) : (
-				<FilterRow
-					allFilters={allFilters ?? []}
-					currentFilter={currentFilter}
-					setCurrentFilter={setCurrentFilter}
-				/>
-			)}
+			<FilterRow
+				isLoadingAllFilters={isLoadingAllFilters}
+				allFilters={allFilters ?? []}
+				currentFilter={currentFilter}
+				setCurrentFilter={setCurrentFilter}
+			/>
 
 			<div className='flex flex-col sm:flex-row gap-4 mt-6 max-h-[80vh]'>
-				<div className='sm:basis-1/4 min-h-[20vh] sm:min-h-[60vh] overflow-auto rounded-xl border p-4 bg-card shadow-sm'>
+				<div className='sm:basis-1/4 max-h-[50vh] sm:min-h-[70vh] sm:max-h-[70vh] overflow-auto rounded-xl border p-4 shadow-sm'>
 					{/* todo: make header sticky  */}
 					<h1 className='text-center sm:mt-6 mb-4'>
 						Matching Symbols

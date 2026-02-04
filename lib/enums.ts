@@ -16,3 +16,7 @@ export enum UserRole {
 	OWNER = 'owner',
 	MEMBER = 'member'
 }
+
+export enum StripPlan {
+	BASE = 'Base'
+}
