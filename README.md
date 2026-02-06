@@ -140,11 +140,6 @@ launch in dev mode
 pnpm dev
 ```
 
-# TODO (in this order)
+# TODO
 
-- performance improvement for stock-screener or at least proper loading
-- add version to footer
-- add initial working version and then move to development branch after release 1
-- move todos into trello
-- clerk enable sso on prod
-- decide which indicators to use (checkbox)
+- Update this readme

@@ -3,7 +3,7 @@ import { JSX } from 'react';
 
 export default function StockScreenerSkeleton(): JSX.Element {
 	return (
-		<div className='p-2'>
+		<div className='p-4'>
 			{/* filter bar */}
 			<Card className='w-full shadow-2xl rounded-2xl animate-pulse bg-card/80 backdrop-blur-sm'>
 				<CardContent className='space-y-6'>

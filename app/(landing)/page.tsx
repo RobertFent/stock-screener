@@ -47,7 +47,7 @@ export default function HomePage(): JSX.Element {
 							<a href='/stock-screener'>
 								<Button
 									size='lg'
-									className='mt-8 text-lg rounded-full'
+									className='mt-8 text-lg rounded-full cursor-pointer'
 									variant='outline'
 								>
 									Try It Now
@@ -108,7 +108,7 @@ export default function HomePage(): JSX.Element {
 								<Button
 									size='lg'
 									variant='outline'
-									className='text-lg rounded-full'
+									className='text-lg rounded-full cursor-pointer'
 								>
 									Get Started
 									<ArrowRight className='ml-3 h-6 w-6' />

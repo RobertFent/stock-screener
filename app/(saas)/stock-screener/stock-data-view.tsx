@@ -175,20 +175,20 @@ const SelectFilterCombobox = ({
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger asChild>
 					{isLoadingAllFilters ? (
-						<div className='w-[200px] h-9 rounded-md bg-muted animate-pulse' />
+						<div className='w-[250px] h-9 rounded-md bg-muted animate-pulse' />
 					) : (
 						<Button
 							variant='outline'
 							role='combobox'
 							aria-expanded={open}
-							className='w-[200px] justify-between'
+							className='w-[250px] justify-between'
 						>
 							{fixFilterName ?? 'Select filter preset...'}
 							<ChevronsUpDownIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
 						</Button>
 					)}
 				</PopoverTrigger>
-				<PopoverContent className='w-[200px] p-0'>
+				<PopoverContent className='w-[250px] p-1'>
 					<Command>
 						<CommandList>
 							<CommandGroup>
@@ -196,7 +196,7 @@ const SelectFilterCombobox = ({
 									return (
 										<div
 											key={filter.id}
-											className='flex flex-row justify-between items-center'
+											className='flex flex-row items-center p-0 mt-1 mb-1'
 										>
 											<CommandItem
 												key={filter.id}
@@ -209,7 +209,7 @@ const SelectFilterCombobox = ({
 														)
 													);
 												}}
-												className='w-[100%]'
+												className='w-3/4 p-0' // 75%
 											>
 												<Button
 													variant={
@@ -218,7 +218,7 @@ const SelectFilterCombobox = ({
 															? 'secondary'
 															: 'ghost'
 													}
-													className={`w-full justify-start ${
+													className={`overflow-auto w-full justify-start ${
 														currentFilter.id ===
 														filter.id
 															? 'bg-secondary'
@@ -228,9 +228,10 @@ const SelectFilterCombobox = ({
 													{filter.name}
 												</Button>
 											</CommandItem>
-											<div className='flex flex-row'>
+											<div className='flex flex-row w-1/4'>
 												<Button
 													variant='link'
+													className='w-1/2'
 													onClick={() => {
 														setLastAction(
 															'updateDefault'
@@ -255,6 +256,7 @@ const SelectFilterCombobox = ({
 												</Button>
 												<Button
 													variant='link'
+													className='w-1/2'
 													onClick={() => {
 														setLastAction('delete');
 														const fd =
@@ -667,6 +669,7 @@ export default function StockDataView({
 		Filter[]
 	>('/api/filters', fetcher);
 	const isInitialFilterSet = useRef(false);
+
 	// initial blank state
 	const [currentFilter, setCurrentFilter] = useState<FilterUI>({
 		id: null,
@@ -798,6 +801,14 @@ export default function StockDataView({
 		});
 	}, [stocks, currentFilter]);
 
+	// display first matching symbol by default
+	useEffect(() => {
+		if (filteredStocks.length) {
+			// eslint-disable-next-line react-hooks/set-state-in-effect
+			setSelectedStock(filteredStocks[0]);
+		}
+	}, [filteredStocks]);
+
 	// todo: put into cards
 	// todo: maybe put chart into server component
 	return (
@@ -831,7 +842,7 @@ export default function StockDataView({
 					})}
 				</div>
 				<div className='sm:basis-3/4 text-center sm:overflow-auto'>
-					{selectedStock ? (
+					{selectedStock && (
 						<div className='flex flex-col gap-4'>
 							<h1 className='text-xl font-bold tracking-tight sm:text-2xl md:text-4xl'>
 								{selectedStock.ticker}
@@ -859,10 +870,6 @@ export default function StockDataView({
 									{selectedStock.willr.toPrecision(6)}
 								</p>
 							</div>
-						</div>
-					) : (
-						<div className='flex items-center justify-center h-full text-xl'>
-							Please select a symbol to see its data
 						</div>
 					)}
 				</div>

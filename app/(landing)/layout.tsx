@@ -23,7 +23,7 @@ const ClerkMenu = (): JSX.Element => {
 			<ClerkLoaded>
 				<SignedOut>
 					<SignInButton forceRedirectUrl='/stock-screener'>
-						<button className='bg-primary rounded-full font-medium text-xl h-10 sm:h-12 px-4 sm:px-5 cursor-pointer'>
+						<button className='bg-primary rounded-full font-medium text-xl sm:h-12 px-4 sm:px-5 cursor-pointer'>
 							Sign In
 						</button>
 					</SignInButton>
