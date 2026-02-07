@@ -4,6 +4,7 @@ import { Manrope } from 'next/font/google';
 import { SWRConfig } from 'swr';
 import { JSX } from 'react';
 import { ClerkProvider } from '@clerk/nextjs';
+import { TooltipProvider } from '@/components/ui/tooltip';
 
 export const metadata: Metadata = {
 	title: 'Stock Screener',
@@ -35,7 +36,7 @@ export default function RootLayout({
 							}
 						}}
 					>
-						{children}
+						<TooltipProvider>{children}</TooltipProvider>
 					</SWRConfig>
 				</body>
 			</html>

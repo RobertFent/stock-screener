@@ -33,7 +33,8 @@ import {
 	Loader2,
 	SaveIcon,
 	TrashIcon,
-	StarIcon
+	StarIcon,
+	HelpCircle
 } from 'lucide-react';
 import React from 'react';
 import z from 'zod';
@@ -41,6 +42,11 @@ import { deleteFilter, saveFilter, updateDefaultFilter } from '@/lib/actions';
 import { ActionState } from '@/lib/auth/middleware';
 import { Switch } from '@/components/ui/switch';
 import { Filter } from '@/lib/db/schema';
+import {
+	TooltipTrigger,
+	TooltipContent,
+	Tooltip
+} from '@/components/ui/tooltip';
 
 // todo: check where to put this type
 type FilterUI = {
@@ -317,18 +323,38 @@ const FilterNumberInput = ({
 	label,
 	filterValue,
 	filterKey,
-	setCurrentFilter
+	setCurrentFilter,
+	toolTipContent
 }: {
 	label: string;
 	filterValue: number | null;
 	filterKey: string;
 	setCurrentFilter: Dispatch<SetStateAction<FilterUI>>;
+	toolTipContent?: string | undefined;
 }): JSX.Element => {
 	return (
 		<div className='flex flex-col space-y-1'>
-			<label className='text-sm font-medium text-muted-foreground'>
-				{label}
-			</label>
+			<div className='flex flex-row gap-1'>
+				{/* the tooltip is only rendered when a message is provided; else its discarded */}
+				<label className='text-sm font-medium text-muted-foreground text-left'>
+					{label}
+				</label>
+				{toolTipContent && (
+					<Tooltip>
+						<TooltipTrigger asChild>
+							<span className='cursor-pointer'>
+								<HelpCircle
+									size={14}
+									className='text-muted-foreground'
+								/>
+							</span>
+						</TooltipTrigger>
+						<TooltipContent className='text-left'>
+							{toolTipContent}
+						</TooltipContent>
+					</Tooltip>
+				)}
+			</div>
 			<Input
 				type='number'
 				placeholder={'-'}
@@ -351,12 +377,14 @@ const FilterSwitchInput = ({
 	label,
 	checked,
 	filterKey,
-	setCurrentFilter
+	setCurrentFilter,
+	toolTipContent
 }: {
 	label: string;
 	checked: boolean;
 	filterKey: string;
 	setCurrentFilter: Dispatch<SetStateAction<FilterUI>>;
+	toolTipContent?: string | undefined;
 }): JSX.Element => {
 	return (
 		<label className='flex items-center gap-2 text-sm'>
@@ -372,6 +400,20 @@ const FilterSwitchInput = ({
 				}}
 			/>
 			{label}
+			{/* the tooltip is only rendered when a message is provided; else its discarded */}
+			{toolTipContent && (
+				<Tooltip>
+					<TooltipTrigger asChild>
+						<span className='cursor-pointer'>
+							<HelpCircle
+								size={14}
+								className='text-muted-foreground'
+							/>
+						</span>
+					</TooltipTrigger>
+					<TooltipContent>{toolTipContent}</TooltipContent>
+				</Tooltip>
+			)}
 		</label>
 	);
 };
@@ -528,6 +570,7 @@ const FilterRow = ({
 					filterValue={currentFilter.maxRSI}
 					filterKey='maxRSI'
 					setCurrentFilter={setCurrentFilter}
+					toolTipContent='RSI(14)'
 				/>
 
 				{/* --- IV --- */}
@@ -536,12 +579,14 @@ const FilterRow = ({
 					filterValue={currentFilter.minIV}
 					filterKey='minIV'
 					setCurrentFilter={setCurrentFilter}
+					toolTipContent='IV(30)'
 				/>
 				<FilterNumberInput
 					label='Max. IV'
 					filterValue={currentFilter.maxIV}
 					filterKey='maxIV'
 					setCurrentFilter={setCurrentFilter}
+					toolTipContent='IV(30)'
 				/>
 
 				{/* --- WILLR --- */}
@@ -550,12 +595,14 @@ const FilterRow = ({
 					filterValue={currentFilter.minWillr}
 					filterKey='minWillr'
 					setCurrentFilter={setCurrentFilter}
+					toolTipContent='willr(14)'
 				/>
 				<FilterNumberInput
 					label='Max. Williams %R'
 					filterValue={currentFilter.maxWillr}
 					filterKey='maxWillr'
 					setCurrentFilter={setCurrentFilter}
+					toolTipContent='willr(14)'
 				/>
 
 				{/* --- Stochastics --- */}
@@ -564,12 +611,14 @@ const FilterRow = ({
 					filterValue={currentFilter.minStochK}
 					filterKey='minStochK'
 					setCurrentFilter={setCurrentFilter}
+					toolTipContent='stochastic slow(14, 3, 3)'
 				/>
 				<FilterNumberInput
 					label='Max. Stochastics %K'
 					filterValue={currentFilter.maxStochK}
 					filterKey='maxStochK'
 					setCurrentFilter={setCurrentFilter}
+					toolTipContent='stochastic slow(14, 3, 3)'
 				/>
 			</div>
 
@@ -587,6 +636,7 @@ const FilterRow = ({
 					checked={currentFilter.macdIncreasing}
 					filterKey='macdIncreasing'
 					setCurrentFilter={setCurrentFilter}
+					toolTipContent='macd(26, 12, 9)'
 				/>
 
 				<FilterSwitchInput
@@ -594,6 +644,7 @@ const FilterRow = ({
 					checked={currentFilter.macdLineAboveSignal}
 					filterKey='macdLineAboveSignal'
 					setCurrentFilter={setCurrentFilter}
+					toolTipContent='macd(26, 12, 9)'
 				/>
 
 				<FilterSwitchInput
@@ -601,6 +652,7 @@ const FilterRow = ({
 					checked={currentFilter.stochasticsKAboveD}
 					filterKey='stochasticsKAboveD'
 					setCurrentFilter={setCurrentFilter}
+					toolTipContent='stochastic slow(14, 3, 3)'
 				/>
 			</div>
 		</div>
