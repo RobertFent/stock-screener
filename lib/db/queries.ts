@@ -287,9 +287,11 @@ export const enrichedStockData = z.object({
 	ema50: z.number(),
 	macd_line: z.number(),
 	signal_line: z.number(),
-	rsi: z.number(),
+	rsi_4: z.number(),
+	rsi_14: z.number(),
 	iv: z.number(),
-	willr: z.number(),
+	willr_4: z.number(),
+	willr_14: z.number(),
 	last_updated_at: z.string(),
 	stoch_percent_k: z.number(),
 	stoch_percent_d: z.number(),
@@ -307,7 +309,7 @@ export const selectAllStocks = async (): Promise<
             curr_data.*,
             LAG(macd_line, 1) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_day,
             LAG(macd_line, 2) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_prev_day
-        FROM stock_winners curr_data
+        FROM stock_data curr_data
     )
     SELECT *
     FROM enriched

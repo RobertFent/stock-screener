@@ -15,6 +15,13 @@
       "when": 1765386710574,
       "tag": "0001_classy_star_brand",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1770572923308,
+      "tag": "0002_sharp_odin",
+      "breakpoints": true
     }
   ]
 }

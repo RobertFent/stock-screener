@@ -54,11 +54,14 @@ type FilterUI = {
 	name: string;
 	createdAt: string | null;
 	minVolume: number | null;
-	maxRSI: number | null;
+	maxRSI4: number | null;
+	maxRSI14: number | null;
 	minIV: number | null;
 	maxIV: number | null;
-	minWillr: number | null;
-	maxWillr: number | null;
+	minWillr4: number | null;
+	maxWillr4: number | null;
+	minWillr14: number | null;
+	maxWillr14: number | null;
 	minStochK: number | null;
 	maxStochK: number | null;
 	macdIncreasing: boolean;
@@ -78,8 +81,12 @@ const parseFilterUIToFormData = (filter: FilterUI): FormData => {
 		fd.set('minVolume', String(filter.minVolume));
 	}
 
-	if (filter.maxRSI !== undefined) {
-		fd.set('maxRSI', String(filter.maxRSI));
+	if (filter.maxRSI4 !== undefined) {
+		fd.set('maxRSI4', String(filter.maxRSI4));
+	}
+
+	if (filter.maxRSI14 !== undefined) {
+		fd.set('maxRSI14', String(filter.maxRSI14));
 	}
 
 	if (filter.minIV !== undefined) {
@@ -90,12 +97,20 @@ const parseFilterUIToFormData = (filter: FilterUI): FormData => {
 		fd.set('maxIV', String(filter.maxIV));
 	}
 
-	if (filter.minWillr !== undefined) {
-		fd.set('minWillr', String(filter.minWillr));
+	if (filter.minWillr4 !== undefined) {
+		fd.set('minWillr4', String(filter.minWillr4));
 	}
 
-	if (filter.maxWillr !== undefined) {
-		fd.set('maxWillr', String(filter.maxWillr));
+	if (filter.maxWillr4 !== undefined) {
+		fd.set('maxWillr4', String(filter.maxWillr4));
+	}
+
+	if (filter.minWillr14 !== undefined) {
+		fd.set('minWillr14', String(filter.minWillr14));
+	}
+
+	if (filter.maxWillr14 !== undefined) {
+		fd.set('maxWillr14', String(filter.maxWillr14));
 	}
 
 	if (filter.minStochK !== undefined) {
@@ -129,11 +144,14 @@ const parseFilterDBObjectToFilterUI = (filter: Filter): FilterUI => {
 		name: filter.name,
 		createdAt: new Date(filter.createdAt).toISOString(),
 		minVolume: filter.minVolume,
-		maxRSI: filter.maxRSI,
+		maxRSI4: filter.maxRSI4,
+		maxRSI14: filter.maxRSI14,
 		minIV: filter.minIV,
 		maxIV: filter.maxIV,
-		minWillr: filter.minWillr,
-		maxWillr: filter.maxWillr,
+		minWillr4: filter.minWillr4,
+		maxWillr4: filter.maxWillr4,
+		minWillr14: filter.minWillr14,
+		maxWillr14: filter.maxWillr14,
 		minStochK: filter.minStochK,
 		maxStochK: filter.maxStochK,
 		macdIncreasing: filter.macdIncreasing ?? false,
@@ -555,7 +573,7 @@ const FilterRow = ({
 						)}
 				</div>
 			</div>
-			<div className='mt-4 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-4'>
+			<div className='mt-4 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4'>
 				{/* --- Volume --- */}
 				<FilterNumberInput
 					label='Min. Volume'
@@ -566,9 +584,17 @@ const FilterRow = ({
 
 				{/* --- RSI --- */}
 				<FilterNumberInput
-					label='Max. RSI'
-					filterValue={currentFilter.maxRSI}
-					filterKey='maxRSI'
+					label='Max. RSI 4'
+					filterValue={currentFilter.maxRSI4}
+					filterKey='maxRSI4'
+					setCurrentFilter={setCurrentFilter}
+					toolTipContent='RSI(4)'
+				/>
+
+				<FilterNumberInput
+					label='Max. RSI 14'
+					filterValue={currentFilter.maxRSI14}
+					filterKey='maxRSI14'
 					setCurrentFilter={setCurrentFilter}
 					toolTipContent='RSI(14)'
 				/>
@@ -591,16 +617,31 @@ const FilterRow = ({
 
 				{/* --- WILLR --- */}
 				<FilterNumberInput
-					label='Min. Williams %R'
-					filterValue={currentFilter.minWillr}
-					filterKey='minWillr'
+					label='Min. Williams %R 4'
+					filterValue={currentFilter.minWillr4}
+					filterKey='minWillr4'
+					setCurrentFilter={setCurrentFilter}
+					toolTipContent='willr(4)'
+				/>
+				<FilterNumberInput
+					label='Max. Williams %R 4'
+					filterValue={currentFilter.maxWillr4}
+					filterKey='maxWillr4'
+					setCurrentFilter={setCurrentFilter}
+					toolTipContent='willr(4)'
+				/>
+
+				<FilterNumberInput
+					label='Min. Williams %R 14'
+					filterValue={currentFilter.minWillr14}
+					filterKey='minWillr14'
 					setCurrentFilter={setCurrentFilter}
 					toolTipContent='willr(14)'
 				/>
 				<FilterNumberInput
-					label='Max. Williams %R'
-					filterValue={currentFilter.maxWillr}
-					filterKey='maxWillr'
+					label='Max. Williams %R 14'
+					filterValue={currentFilter.maxWillr14}
+					filterKey='maxWillr14'
 					setCurrentFilter={setCurrentFilter}
 					toolTipContent='willr(14)'
 				/>
@@ -728,11 +769,14 @@ export default function StockDataView({
 		name: 'default filter',
 		createdAt: new Date().toISOString(),
 		minVolume: null,
-		maxRSI: null,
+		maxRSI4: null,
+		maxRSI14: null,
 		minIV: null,
 		maxIV: null,
-		minWillr: null,
-		maxWillr: null,
+		minWillr4: null,
+		maxWillr4: null,
+		minWillr14: null,
+		maxWillr14: null,
 		minStochK: null,
 		maxStochK: null,
 		macdIncreasing: false,
@@ -772,8 +816,15 @@ export default function StockDataView({
 			}
 
 			if (
-				currentFilter.maxRSI !== null &&
-				stock.rsi > currentFilter.maxRSI
+				currentFilter.maxRSI4 !== null &&
+				stock.rsi_4 > currentFilter.maxRSI4
+			) {
+				return false;
+			}
+
+			if (
+				currentFilter.maxRSI14 !== null &&
+				stock.rsi_14 > currentFilter.maxRSI14
 			) {
 				return false;
 			}
@@ -793,15 +844,29 @@ export default function StockDataView({
 			}
 
 			if (
-				currentFilter.minWillr !== null &&
-				stock.willr > currentFilter.minWillr
+				currentFilter.minWillr4 !== null &&
+				stock.willr_4 > currentFilter.minWillr4
 			) {
 				return false;
 			}
 
 			if (
-				currentFilter.maxWillr !== null &&
-				stock.willr < currentFilter.maxWillr
+				currentFilter.maxWillr4 !== null &&
+				stock.willr_4 < currentFilter.maxWillr4
+			) {
+				return false;
+			}
+
+			if (
+				currentFilter.minWillr14 !== null &&
+				stock.willr_14 > currentFilter.minWillr14
+			) {
+				return false;
+			}
+
+			if (
+				currentFilter.maxWillr14 !== null &&
+				stock.willr_14 < currentFilter.maxWillr14
 			) {
 				return false;
 			}
@@ -918,8 +983,8 @@ export default function StockDataView({
 									).toDateString()}
 								</p>
 								<p>
-									Williams R%:{' '}
-									{selectedStock.willr.toPrecision(6)}
+									Williams R% 14:{' '}
+									{selectedStock.willr_14.toPrecision(6)}
 								</p>
 							</div>
 						</div>
