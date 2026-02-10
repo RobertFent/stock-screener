@@ -303,18 +303,30 @@ export const enrichedStockDataList = z.array(enrichedStockData);
 export const selectAllStocks = async (): Promise<
 	z.infer<typeof enrichedStockDataList>
 > => {
+	// more performant approach due to large data set -> using rn prevents lag fct on every col
 	const result = await stockAnalysisDb.execute(sql`
-    WITH enriched AS (
-        SELECT
-            curr_data.*,
-            LAG(macd_line, 1) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_day,
-            LAG(macd_line, 2) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_prev_day
-        FROM stock_data curr_data
-    )
-    SELECT *
-    FROM enriched
-    WHERE date = (SELECT MAX(date) FROM enriched)
-    ORDER BY date;
+    WITH recent_dates AS (
+		SELECT
+			*,
+			ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY date DESC) AS rn
+		FROM stock_data
+	),
+	filtered AS (
+		SELECT *
+		FROM recent_dates
+		WHERE rn <= 4 -- get enough rows for LAG(1) and LAG(2)
+	),
+	enriched AS (
+		SELECT
+			*,
+			LAG(macd_line, 1) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_day,
+			LAG(macd_line, 2) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_prev_day
+		FROM filtered
+	)
+	SELECT *
+	FROM enriched
+	WHERE rn <= 1 -- only last dates per ticker
+	ORDER BY ticker, date DESC;
   `);
 	const allStocks = enrichedStockDataList.parse(result);
 

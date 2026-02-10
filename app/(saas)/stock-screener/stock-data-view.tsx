@@ -47,6 +47,7 @@ import {
 	TooltipContent,
 	Tooltip
 } from '@/components/ui/tooltip';
+import { Checkbox } from '@/components/ui/checkbox';
 
 // todo: check where to put this type
 type FilterUI = {
@@ -69,6 +70,16 @@ type FilterUI = {
 	closeAboveEma20AboveEma50: boolean;
 	stochasticsKAboveD: boolean;
 };
+
+type Study = { id: string; label: string; inputs?: { length: number } };
+
+const INDICATOR_OPTIONS: Study[] = [
+	{ id: 'RSI@tv-basicstudies', label: 'RSI(14)', inputs: { length: 14 } },
+	{ id: 'RSI@tv-basicstudies', label: 'RSI(4)', inputs: { length: 4 } },
+	{ id: 'MACD@tv-basicstudies', label: 'MACD(12, 26, 9)' },
+	{ id: 'Stochastic@tv-basicstudies', label: 'Stoch(14, 3, 3)' }
+	// { id: 'EMA@tv-basicstudies', label: 'EMA(20)', inputs: { length: 20 } }
+];
 
 type LastAction = 'save' | 'delete' | 'updateDefault' | null;
 
@@ -705,7 +716,13 @@ declare global {
 		TradingView: any;
 	}
 }
-const TradingViewChart = ({ ticker }: { ticker: string }): JSX.Element => {
+const TradingViewChart = ({
+	ticker,
+	indicators
+}: {
+	ticker: string;
+	indicators: Study[];
+}): JSX.Element => {
 	const containerId = 'tv_chart_container';
 
 	const createChart = useCallback((): any => {
@@ -720,14 +737,10 @@ const TradingViewChart = ({ ticker }: { ticker: string }): JSX.Element => {
 			theme: 'dark',
 			style: '1',
 			locale: 'en',
-			studies: [
-				'RSI@tv-basicstudies',
-				'MACD@tv-basicstudies', // todo set params for indicators
-				'Stochastic@tv-basicstudies'
-			],
+			studies: indicators,
 			container_id: containerId
 		});
-	}, [ticker]);
+	}, [indicators, ticker]);
 
 	useEffect(() => {
 		// remove old chart if it exists
@@ -753,6 +766,69 @@ const TradingViewChart = ({ ticker }: { ticker: string }): JSX.Element => {
 	return <div id={containerId} style={{ width: '100%', height: '50vh' }} />;
 };
 
+const IndicatorSelector = ({
+	selectedIndicators,
+	setSelectedIndicators
+}: {
+	selectedIndicators: Study[];
+	setSelectedIndicators: (indicators: Study[]) => void;
+}): JSX.Element => {
+	const [open, setOpen] = useState(false);
+
+	const handleToggle = (option: (typeof INDICATOR_OPTIONS)[0]): void => {
+		const alreadySelected = selectedIndicators.some((i) => {
+			return i.label === option.label;
+		});
+		if (alreadySelected) {
+			setSelectedIndicators(
+				selectedIndicators.filter((i) => {
+					return i.label !== option.label;
+				})
+			);
+		} else if (selectedIndicators.length < 3) {
+			setSelectedIndicators([...selectedIndicators, option]);
+		}
+	};
+
+	return (
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger asChild>
+				<Button variant='outline' className='w-full'>
+					Select Indicators ({selectedIndicators.length}/3)
+				</Button>
+			</PopoverTrigger>
+			<PopoverContent className='w-64 p-4'>
+				<div className='flex flex-col gap-2'>
+					{INDICATOR_OPTIONS.map((option) => {
+						return (
+							// label as key due to multiple same ids because of trading view indicators with different settings
+							<label
+								key={option.label}
+								className='flex items-center gap-2'
+							>
+								<Checkbox
+									checked={selectedIndicators.some((i) => {
+										return i.label === option.label;
+									})}
+									disabled={
+										!selectedIndicators.some((i) => {
+											return i.label === option.label;
+										}) && selectedIndicators.length >= 3
+									}
+									onCheckedChange={() => {
+										return handleToggle(option);
+									}}
+								/>
+								<span className='text-sm'>{option.label}</span>
+							</label>
+						);
+					})}
+				</div>
+			</PopoverContent>
+		</Popover>
+	);
+};
+
 export default function StockDataView({
 	stocks
 }: {
@@ -760,7 +836,7 @@ export default function StockDataView({
 }): JSX.Element {
 	const { data: allFilters, isLoading: isLoadingAllFilters } = useSWR<
 		Filter[]
-	>('/api/filters', fetcher);
+	>('/api/filters', fetcher); // todo: save indicator state too
 	const isInitialFilterSet = useRef(false);
 
 	// initial blank state
@@ -786,6 +862,34 @@ export default function StockDataView({
 	});
 	const [selectedStock, setSelectedStock] =
 		useState<z.infer<typeof enrichedStockData>>();
+
+	// init indicators from local storage
+	const [indicators, setIndicators] = useState<Study[]>(() => {
+		if (typeof window === 'undefined') {
+			return [];
+		}
+
+		const saved = localStorage.getItem('indicators');
+		if (saved) {
+			try {
+				const parsed = JSON.parse(saved);
+				if (Array.isArray(parsed)) {
+					return parsed;
+				}
+			} catch {}
+		}
+
+		return [
+			INDICATOR_OPTIONS[0],
+			INDICATOR_OPTIONS[2],
+			INDICATOR_OPTIONS[3]
+		];
+	});
+
+	// update indicators on local storage
+	useEffect(() => {
+		localStorage.setItem('indicators', JSON.stringify(indicators));
+	}, [indicators]);
 
 	// Sync once SWR resolves
 	useEffect(() => {
@@ -964,7 +1068,14 @@ export default function StockDataView({
 							<h1 className='text-xl font-bold tracking-tight sm:text-2xl md:text-4xl'>
 								{selectedStock.ticker}
 							</h1>
-							<TradingViewChart ticker={selectedStock.ticker} />
+							<TradingViewChart
+								ticker={selectedStock.ticker}
+								indicators={indicators}
+							/>
+							<IndicatorSelector
+								selectedIndicators={indicators}
+								setSelectedIndicators={setIndicators}
+							/>
 							<div className='grid grid-cols-2 gap-4'>
 								<p>
 									Last Updated At:{' '}
