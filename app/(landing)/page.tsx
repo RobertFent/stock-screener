@@ -33,16 +33,20 @@ export default function HomePage(): JSX.Element {
 					<div className='lg:grid lg:grid-cols-12 lg:gap-8'>
 						<div className='sm:text-center md:max-w-2xl md:mx-auto lg:col-span-6 lg:text-left'>
 							<h1 className='text-2xl font-bold tracking-tight sm:text-3xl md:text-4xl'>
-								Filter Nasdaq and S&P 500 Stocks Instantly with
+								Filter Nasdaq and S&P 500 Stocks with
 								<span className='text-primary'>
 									{' '}
 									Stock Screener
 								</span>
 							</h1>
 							<p className='mt-3 text-base text-foreground/80 sm:mt-5 sm:text-xl lg:text-lg xl:text-xl'>
-								Quickly find stocks that meet your trading
-								criteria. Track RSI, IV, Williams %R,
-								Stochastics, EMA trends, and MACD.
+								Discover stocks that match your strategy using a
+								large dataset of Nasdaq and S&amp;P 500 data.
+								Filter by RSI(4/14), Williams %R(4/14), IV,
+								Stochastics, MACD, and EMA20/EMA50 crossovers.
+								The results will be visualized on an interactive
+								TradingView chart and you may additionaly choose
+								which indicators to display.
 							</p>
 							<a href='/stock-screener'>
 								<Button
@@ -58,9 +62,9 @@ export default function HomePage(): JSX.Element {
 						<div className='mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center'>
 							<Image
 								src='/images/stock_screener_example.png'
-								alt='Example image'
-								width={600}
-								height={400}
+								alt='Example stock screener'
+								width={400}
+								height={300}
 								className='w-full h-auto'
 							/>
 						</div>
@@ -68,23 +72,23 @@ export default function HomePage(): JSX.Element {
 				</div>
 			</section>
 
-			<section className='py-16 bg-secondary w-full'>
+			<section className='py-12 bg-secondary w-full'>
 				<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
 					<div className='lg:grid lg:grid-cols-3 lg:gap-8'>
 						{FeatureElement(
 							<Database className='h-6 w-6' />,
 							'Comprehensive Stock Data',
-							'Access up-to-date information for all Nasdaq and S&P 500 stocks for smarter, faster decisions.'
+							'Analyze and filter Nasdaq and S&P 500 stocks using a rich dataset, including some of the most common key technical calculations.'
 						)}
 						{FeatureElement(
 							<UserCheck className='h-6 w-6' />,
-							'Advanced Technical Filters',
-							'Filter stocks using RSI, IV, Williams %R, Stochastics, EMA20, and MACD trends over multiple days.'
+							'Powerful Technical Filters',
+							'Screen stocks by RSI(4/14), Williams %R(4/14), IV, Stochastics, MACD, and EMA20/EMA50 crossovers.'
 						)}
 						{FeatureElement(
 							<ChartArea className='h-6 w-6' />,
-							'Visualize Trends Easily',
-							'Instantly see which stocks match your criteria with clear, intuitive charts and indicators.'
+							'Interactive Charting Experience',
+							'Visualize filtered stocks on a TradingView chart and choose between a set of indicators to display for deeper analysis and confident decisions.'
 						)}
 					</div>
 				</div>
@@ -94,8 +98,8 @@ export default function HomePage(): JSX.Element {
 				<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
 					<div className='lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center'>
 						<div>
-							<h2 className='text-3xl font-bold sm:text-4xl'>
-								Ready to find your next winning stock?
+							<h2 className='text-2xl font-bold sm:text-3xl'>
+								Ready to enhance your stock screening game?
 							</h2>
 							<p className='mt-3 max-w-3xl text-lg text-foreground/80'>
 								Save some time with Stock Screener doing the

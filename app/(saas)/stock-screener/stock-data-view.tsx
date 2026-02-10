@@ -763,7 +763,7 @@ const TradingViewChart = ({
 		}
 	}, [createChart, ticker]);
 
-	return <div id={containerId} style={{ width: '100%', height: '50vh' }} />;
+	return <div id={containerId} style={{ width: '100%', height: '45vh' }} />;
 };
 
 const IndicatorSelector = ({
@@ -1031,7 +1031,6 @@ export default function StockDataView({
 	}, [filteredStocks]);
 
 	// todo: put into cards
-	// todo: maybe put chart into server component
 	return (
 		<>
 			<FilterRow
@@ -1042,7 +1041,7 @@ export default function StockDataView({
 			/>
 
 			<div className='flex flex-col sm:flex-row gap-4 mt-6 max-h-[80vh]'>
-				<div className='sm:basis-1/4 max-h-[50vh] sm:min-h-[70vh] sm:max-h-[70vh] overflow-auto rounded-xl border p-4 shadow-sm'>
+				<div className='sm:basis-1/4 min-h-[30vh] max-h-[30vh] sm:min-h-[60vh] sm:max-h-[60vh] overflow-auto rounded-xl border p-4 shadow-sm'>
 					{/* todo: make header sticky  */}
 					<h1 className='text-center sm:mt-6 mb-4'>
 						Matching Symbols
@@ -1065,7 +1064,7 @@ export default function StockDataView({
 				<div className='sm:basis-3/4 text-center sm:overflow-auto'>
 					{selectedStock && (
 						<div className='flex flex-col gap-4'>
-							<h1 className='text-xl font-bold tracking-tight sm:text-2xl md:text-4xl'>
+							<h1 className='text-xl font-bold tracking-tight sm:text-2xl'>
 								{selectedStock.ticker}
 							</h1>
 							<TradingViewChart
@@ -1076,7 +1075,7 @@ export default function StockDataView({
 								selectedIndicators={indicators}
 								setSelectedIndicators={setIndicators}
 							/>
-							<div className='grid grid-cols-2 gap-4'>
+							<div className='grid grid-cols-2 gap-2'>
 								<p>
 									Last Updated At:{' '}
 									{new Date(
