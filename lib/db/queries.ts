@@ -296,10 +296,12 @@ export const enrichedStockData = z.object({
 	stoch_percent_k: z.number(),
 	stoch_percent_d: z.number(),
 	macd_line_prev_day: z.number(),
-	macd_line_prev_prev_day: z.number()
+	macd_line_prev_prev_day: z.number(),
+	adr_20: z.string().nullable() // numerics are received as strings
 });
 export const enrichedStockDataList = z.array(enrichedStockData);
 
+// this still takes forever
 export const selectAllStocks = async (): Promise<
 	z.infer<typeof enrichedStockDataList>
 > => {

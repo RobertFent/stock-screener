@@ -77,8 +77,7 @@ const INDICATOR_OPTIONS: Study[] = [
 	{ id: 'RSI@tv-basicstudies', label: 'RSI(14)', inputs: { length: 14 } },
 	{ id: 'RSI@tv-basicstudies', label: 'RSI(4)', inputs: { length: 4 } },
 	{ id: 'MACD@tv-basicstudies', label: 'MACD(12, 26, 9)' },
-	{ id: 'Stochastic@tv-basicstudies', label: 'Stoch(14, 3, 3)' }
-	// { id: 'EMA@tv-basicstudies', label: 'EMA(20)', inputs: { length: 20 } }
+	{ id: 'Stochastic@tv-basicstudies', label: 'Stoch(14, 3, 3)' } // todo: will r does not exist; https://www.tradingview.com/lightweight-charts/
 ];
 
 type LastAction = 'save' | 'delete' | 'updateDefault' | null;
@@ -1075,7 +1074,7 @@ export default function StockDataView({
 								selectedIndicators={indicators}
 								setSelectedIndicators={setIndicators}
 							/>
-							<div className='grid grid-cols-2 gap-2'>
+							<div className='grid grid-cols-3 gap-2'>
 								<p>
 									Last Updated At:{' '}
 									{new Date(
@@ -1084,7 +1083,7 @@ export default function StockDataView({
 								</p>
 								<p>
 									Implied Volatility:{' '}
-									{selectedStock.iv.toPrecision(6)}
+									{selectedStock.iv.toPrecision(4)}
 								</p>
 								<p>
 									Signal Date (AMC):{' '}
@@ -1094,7 +1093,15 @@ export default function StockDataView({
 								</p>
 								<p>
 									Williams R% 14:{' '}
-									{selectedStock.willr_14.toPrecision(6)}
+									{selectedStock.willr_14.toPrecision(4)}
+								</p>
+								<p>
+									Williams R% 4:{' '}
+									{selectedStock.willr_4.toPrecision(4)}
+								</p>
+								<p>
+									Average Daily Range (ADR) 20:{' '}
+									{selectedStock.adr_20}
 								</p>
 							</div>
 						</div>
