@@ -96,26 +96,105 @@ export default function HomePage(): JSX.Element {
 
 			<section className='py-16'>
 				<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
-					<div className='lg:grid lg:grid-cols-2 lg:gap-8 lg:items-center'>
-						<div>
-							<h2 className='text-2xl font-bold sm:text-3xl'>
-								Ready to enhance your stock screening game?
-							</h2>
-							<p className='mt-3 max-w-3xl text-lg text-foreground/80'>
-								Save some time with Stock Screener doing the
-								heavy lifting and reveal the stocks that meet
-								your exact strategy.
-							</p>
+					<div className='max-w-3xl mb-12'>
+						<h2 className='text-3xl font-bold tracking-tight sm:text-4xl'>
+							How to use this tool for your daily trading
+						</h2>
+					</div>
+
+					<div className='space-y-24'>
+						{/* Step 1 */}
+						<div className='grid lg:grid-cols-2 gap-12 items-center'>
+							<div>
+								<div className='flex items-center gap-3 mb-4'>
+									<span className='flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold'>
+										1
+									</span>
+									<h3 className='text-xl font-semibold'>
+										Choose your filter
+									</h3>
+								</div>
+
+								<p className='text-lg text-foreground/70 max-w-xl'>
+									Start by selecting or creating a filter
+									preset. This lets you narrow the market down
+									by the indicator or momentum thresholds
+									needed for your trading strategy. You can
+									save up to three filter presets by default.
+									Once a filter is saved you can use it,
+									delete it or even set one as your default.
+								</p>
+							</div>
+
+							<div className='relative rounded-xl border bg-background p-2 shadow-lg'>
+								<Image
+									src='/images/select-filter.png'
+									alt='Selecting a stock filter'
+									width={800}
+									height={600}
+									className='rounded-lg'
+								/>
+							</div>
 						</div>
-						<div className='mt-8 ml-10 lg:mt-0 flex flex-col gap-5 items-end'>
-							<a href='/stock-screener'>
+
+						{/* Step 2 */}
+						<div className='grid lg:grid-cols-2 gap-12 items-center lg:grid-flow-col-dense'>
+							<div className='lg:col-start-2'>
+								<div className='flex items-center gap-3 mb-4'>
+									<span className='flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold'>
+										2
+									</span>
+									<h3 className='text-xl font-semibold'>
+										Pick indicators displayed on the chart
+									</h3>
+								</div>
+
+								<p className='text-lg text-foreground/70 max-w-xl'>
+									Add only the indicators you actually trade
+									with — RSI, MACD, moving averages, or
+									Stochastic. Keep the chart clean and focused
+									on what matters.
+								</p>
+								<p className='text-lg text-foreground/70 max-w-xl'>
+									CAVEAT: due to technical limitations you may
+									only choose 3 indicators at the same time
+								</p>
+							</div>
+
+							<div className='relative rounded-xl border bg-background p-2 shadow-lg lg:col-start-1'>
+								<Image
+									src='/images/select-indicator.png'
+									alt='Selecting indicators'
+									width={800}
+									height={600}
+									className='rounded-lg'
+								/>
+							</div>
+						</div>
+
+						{/* Step 3 */}
+						<div className='flex flex-col items-center text-center max-w-2xl mx-auto'>
+							<div className='flex items-center gap-3 mb-4'>
+								<span className='flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold'>
+									3
+								</span>
+								<h3 className='text-xl font-semibold'>
+									Validate and trade
+								</h3>
+							</div>
+
+							<p className='text-lg text-foreground/70'>
+								Review the chart, confirm the setup, and if
+								everything aligns with your strategy, execute
+								the trade.
+							</p>
+
+							<a href='/stock-screener' className='mt-8'>
 								<Button
 									size='lg'
-									variant='outline'
 									className='text-lg rounded-full cursor-pointer'
 								>
-									Get Started
-									<ArrowRight className='ml-3 h-6 w-6' />
+									Start screening
 								</Button>
 							</a>
 						</div>
