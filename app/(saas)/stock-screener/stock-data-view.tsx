@@ -77,7 +77,22 @@ const INDICATOR_OPTIONS: Study[] = [
 	{ id: 'RSI@tv-basicstudies', label: 'RSI(14)', inputs: { length: 14 } },
 	{ id: 'RSI@tv-basicstudies', label: 'RSI(4)', inputs: { length: 4 } },
 	{ id: 'MACD@tv-basicstudies', label: 'MACD(12, 26, 9)' },
-	{ id: 'Stochastic@tv-basicstudies', label: 'Stoch(14, 3, 3)' } // todo: will r does not exist; https://www.tradingview.com/lightweight-charts/
+	{ id: 'Stochastic@tv-basicstudies', label: 'Stoch(14, 3, 3)' }, // will r not supported
+	{
+		id: 'MASimple@tv-basicstudies',
+		label: 'MA(200)',
+		inputs: { length: 200 }
+	},
+	{
+		id: 'MAExp@tv-basicstudies',
+		label: 'EMA(20)',
+		inputs: { length: 20 }
+	},
+	{
+		id: 'MAExp@tv-basicstudies',
+		label: 'EMA(50)',
+		inputs: { length: 50 }
+	}
 ];
 
 type LastAction = 'save' | 'delete' | 'updateDefault' | null;
@@ -1093,14 +1108,14 @@ export default function StockDataView({
 								</p>
 								<p>
 									Williams R% 14:{' '}
-									{selectedStock.willr_14.toPrecision(4)}
+									{selectedStock.willr_14.toPrecision(4)}%
 								</p>
 								<p>
 									Williams R% 4:{' '}
-									{selectedStock.willr_4.toPrecision(4)}
+									{selectedStock.willr_4.toPrecision(4)}%
 								</p>
 								<p>
-									Average Daily Range (ADR) 20:{' '}
+									Average Daily Range (ADR) 20: $
 									{selectedStock.adr_20}
 								</p>
 							</div>
