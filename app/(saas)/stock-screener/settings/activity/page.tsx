@@ -65,6 +65,10 @@ function formatAction(action: ActivityType): string {
 			return 'You invited a team member';
 		case ActivityType.ACCEPT_INVITATION:
 			return 'You accepted an invitation';
+		case ActivityType.ADD_FILTER:
+			return 'You added a filter preset';
+		case ActivityType.DELETE_FILTER:
+			return 'You deleted a filter preset';
 		default:
 			return 'Unknown action occurred';
 	}
