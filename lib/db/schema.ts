@@ -78,6 +78,7 @@ export const filters = pgTable('filters', {
 	closeAboveEma20AboveEma50: boolean('close_above_ema20_above_ema50').default(
 		false
 	),
+	closeAboveMA200: boolean('close_above_ma200').default(false),
 	stochasticsKAboveD: boolean('stochastics_k_above_d').default(false),
 	isDefault: boolean('is_default').default(false),
 	createdAt: timestamp('created_at').notNull().defaultNow(),

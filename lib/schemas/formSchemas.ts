@@ -16,6 +16,7 @@ export const filtersFormSchema = z.object({
 	macdIncreasing: z.string().optional(),
 	macdLineAboveSignal: z.string().optional(),
 	closeAboveEma20AboveEma50: z.string().optional(),
+	closeAboveMA200: z.string().optional(),
 	stochasticsKAboveD: z.string().optional()
 });
 export type FilterFormInput = z.infer<typeof filtersFormSchema>;

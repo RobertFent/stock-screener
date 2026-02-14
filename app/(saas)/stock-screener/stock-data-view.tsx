@@ -68,6 +68,7 @@ type FilterUI = {
 	macdIncreasing: boolean;
 	macdLineAboveSignal: boolean;
 	closeAboveEma20AboveEma50: boolean;
+	closeAboveMA200: boolean;
 	stochasticsKAboveD: boolean;
 };
 
@@ -155,6 +156,9 @@ const parseFilterUIToFormData = (filter: FilterUI): FormData => {
 	if (filter.closeAboveEma20AboveEma50) {
 		fd.set('closeAboveEma20AboveEma50', 'on');
 	}
+	if (filter.closeAboveMA200) {
+		fd.set('closeAboveMA200', 'on');
+	}
 	if (filter.stochasticsKAboveD) {
 		fd.set('stochasticsKAboveD', 'on');
 	}
@@ -182,6 +186,7 @@ const parseFilterDBObjectToFilterUI = (filter: Filter): FilterUI => {
 		macdIncreasing: filter.macdIncreasing ?? false,
 		macdLineAboveSignal: filter.macdLineAboveSignal ?? false,
 		closeAboveEma20AboveEma50: filter.closeAboveEma20AboveEma50 ?? false,
+		closeAboveMA200: filter.closeAboveMA200 ?? false,
 		stochasticsKAboveD: filter.stochasticsKAboveD ?? false
 	};
 };
@@ -698,6 +703,13 @@ const FilterRow = ({
 				/>
 
 				<FilterSwitchInput
+					label='Close &gt; MA200'
+					checked={currentFilter.closeAboveMA200}
+					filterKey='closeAboveMA200'
+					setCurrentFilter={setCurrentFilter}
+				/>
+
+				<FilterSwitchInput
 					label='MACD increasing (last 3 days)'
 					checked={currentFilter.macdIncreasing}
 					filterKey='macdIncreasing'
@@ -872,6 +884,7 @@ export default function StockDataView({
 		macdIncreasing: false,
 		macdLineAboveSignal: false,
 		closeAboveEma20AboveEma50: false,
+		closeAboveMA200: false,
 		stochasticsKAboveD: false
 	});
 	const [selectedStock, setSelectedStock] =
@@ -1014,6 +1027,13 @@ export default function StockDataView({
 			if (
 				currentFilter.closeAboveEma20AboveEma50 &&
 				(stock.close < stock.ema20 || stock.ema20 < stock.ema50)
+			) {
+				return false;
+			}
+
+			if (
+				currentFilter.closeAboveMA200 &&
+				stock.close < Number(stock.ma_200)
 			) {
 				return false;
 			}

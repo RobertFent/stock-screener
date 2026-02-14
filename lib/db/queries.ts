@@ -297,7 +297,8 @@ export const enrichedStockData = z.object({
 	stoch_percent_d: z.number(),
 	macd_line_prev_day: z.number(),
 	macd_line_prev_prev_day: z.number(),
-	adr_20: z.string().nullable() // numerics are received as strings
+	adr_20: z.string().nullable(), // numerics are received as strings
+	ma_200: z.string().nullable()
 });
 export const enrichedStockDataList = z.array(enrichedStockData);
 

@@ -1,0 +1,1 @@
+ALTER TABLE "filters" ADD COLUMN "close_above_ma200" boolean DEFAULT false;

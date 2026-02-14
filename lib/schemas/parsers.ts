@@ -24,6 +24,7 @@ export const parseFilterFormToDBForm = (
 		closeAboveEma20AboveEma50: toOptionalCheckboxBoolean(
 			filter.closeAboveEma20AboveEma50
 		),
+		closeAboveMA200: toOptionalCheckboxBoolean(filter.closeAboveMA200),
 		stochasticsKAboveD: toOptionalCheckboxBoolean(filter.stochasticsKAboveD)
 	};
 };

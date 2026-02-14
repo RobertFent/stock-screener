@@ -16,6 +16,7 @@ export const filtersDBSchema = z.object({
 	macdIncreasing: z.boolean().optional(),
 	macdLineAboveSignal: z.boolean().optional(),
 	closeAboveEma20AboveEma50: z.boolean().optional(),
+	closeAboveMA200: z.boolean().optional(),
 	stochasticsKAboveD: z.boolean().optional()
 });
 export type FilterDBInput = z.infer<typeof filtersDBSchema>;
