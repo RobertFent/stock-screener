@@ -115,12 +115,15 @@ In your Vercel project settings (or during deployment), add all the necessary en
 2. `STRIPE_SECRET_KEY`: Use your Stripe secret key for the production environment.
 3. `STRIPE_WEBHOOK_SECRET`: Use the webhook secret from the production webhook you created in step 1.
 4. `POSTGRES_URL`: Set this to your production database URL.
-5. `AUTH_SECRET`: Set this to a random string. `openssl rand -base64 32` will generate one.
-6. `CLERK_SECRET_KEY`: Use your Clerk secret key for the production environment.
-7. `CLERK_WEBHOOK_SECRET`: Use your Clerk webhook secret for the production environment.
-8. `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Use your Clerk publishable key for the production environment.
-9. `NEXT_PUBLIC_POSTHOG_HOST`: Use your posthog host for the production environment.
-10. `NEXT_PUBLIC_POSTHOG_KEY`: Use your posthog key for the production environment.
+5. `POSTGRES_URL_STOCK_ANALYSIS`: Set this to your production database URL for stock analysis.
+6. `AUTH_SECRET`: Set this to a random string. `openssl rand -base64 32` will generate one.
+7. `CLERK_SECRET_KEY`: Use your Clerk secret key for the production environment.
+8. `CLERK_WEBHOOK_SECRET`: Use your Clerk webhook secret for the production environment.
+9. `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Use your Clerk publishable key for the production environment.
+10. `NEXT_PUBLIC_POSTHOG_HOST`: Use your posthog host for the production environment.
+11. `NEXT_PUBLIC_POSTHOG_KEY`: Use your posthog key for the production environment.
+12. `RESEND_API_KEY`: Use your API key generated via Resend.
+13. `REVALIDATE_SECRET`: Set this to a random string. `openssl rand -base64 32` will generate one.
 
 ## Additional Setup
 
@@ -138,6 +141,13 @@ launch in dev mode
 
 ```sh
 pnpm dev
+```
+
+### Revalidate cache manually (via cronjob for example)
+
+```bash
+curl -X POST https://yourapp.com/api/revalidate \
+  -H "x-revalidate-secret: super-long-random-string"
 ```
 
 # TODO
