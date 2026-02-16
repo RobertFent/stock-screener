@@ -102,12 +102,12 @@ export default function HomePage(): JSX.Element {
 						</h2>
 					</div>
 
-					<div className='space-y-24'>
+					<div className='space-y-12 md:space-y-24'>
 						{/* Step 1 */}
-						<div className='grid lg:grid-cols-2 gap-12 items-center'>
+						<div className='grid lg:grid-cols-2 gap-6 md:gap-12 items-center'>
 							<div>
 								<div className='flex items-center gap-3 mb-4'>
-									<span className='flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold'>
+									<span className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold'>
 										1
 									</span>
 									<h3 className='text-xl font-semibold'>
@@ -138,10 +138,10 @@ export default function HomePage(): JSX.Element {
 						</div>
 
 						{/* Step 2 */}
-						<div className='grid lg:grid-cols-2 gap-12 items-center lg:grid-flow-col-dense'>
+						<div className='grid lg:grid-cols-2 gap-6 md:gap-12 items-center lg:grid-flow-col-dense'>
 							<div className='lg:col-start-2'>
 								<div className='flex items-center gap-3 mb-4'>
-									<span className='flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold'>
+									<span className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold'>
 										2
 									</span>
 									<h3 className='text-xl font-semibold'>
@@ -173,10 +173,10 @@ export default function HomePage(): JSX.Element {
 						</div>
 
 						{/* Step 3 */}
-						<div className='grid lg:grid-cols-2 gap-12 items-center'>
+						<div className='grid lg:grid-cols-2 gap-6 md:gap-12 items-center'>
 							<div>
 								<div className='flex items-center gap-3 mb-4'>
-									<span className='flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold'>
+									<span className='flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold'>
 										3
 									</span>
 									<h3 className='text-xl font-semibold'>
