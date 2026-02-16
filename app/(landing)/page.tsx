@@ -151,9 +151,9 @@ export default function HomePage(): JSX.Element {
 
 								<p className='text-lg text-foreground/70 max-w-xl'>
 									Add only the indicators you actually trade
-									with — RSI, MACD, moving averages, or
-									Stochastic. Keep the chart clean and focused
-									on what matters.
+									with like RSI, MACD, moving averages, or
+									Stochastic to keep the chart as clean as
+									possible.
 								</p>
 								<p className='text-lg text-foreground/70 max-w-xl'>
 									CAVEAT: due to technical limitations you may
@@ -173,10 +173,42 @@ export default function HomePage(): JSX.Element {
 						</div>
 
 						{/* Step 3 */}
+						<div className='grid lg:grid-cols-2 gap-12 items-center'>
+							<div>
+								<div className='flex items-center gap-3 mb-4'>
+									<span className='flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold'>
+										3
+									</span>
+									<h3 className='text-xl font-semibold'>
+										Optionally: Collaborate with your
+										trading collegues
+									</h3>
+								</div>
+
+								<p className='text-lg text-foreground/70 max-w-xl'>
+									Being part of a team lets you share all
+									saved filter presets. Owners can invite new
+									members and remove non-owners, while members
+									can simply use the shared filters.
+								</p>
+							</div>
+
+							<div className='relative rounded-xl border bg-background p-2 shadow-lg'>
+								<Image
+									src='/images/invite-team-member.png'
+									alt='Inviting a team member'
+									width={800}
+									height={400}
+									className='rounded-lg'
+								/>
+							</div>
+						</div>
+
+						{/* Step 4 */}
 						<div className='flex flex-col items-center text-center max-w-2xl mx-auto'>
 							<div className='flex items-center gap-3 mb-4'>
 								<span className='flex h-10 w-10 items-center justify-center rounded-full bg-primary text-primary-foreground font-semibold'>
-									3
+									4
 								</span>
 								<h3 className='text-xl font-semibold'>
 									Validate and trade
