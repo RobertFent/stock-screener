@@ -11,7 +11,7 @@ const Header = (): JSX.Element => {
 			{/* left items */}
 			<Link href='/stock-screener' className='flex items-center'>
 				<CircleIcon className='h-6 w-6 text-primary' />
-				<span className='ml-2 text-xl font-semibold'>
+				<span className='ml-2 md:text-xl font-semibold'>
 					Stock Screener
 				</span>
 			</Link>
@@ -21,7 +21,7 @@ const Header = (): JSX.Element => {
 					href='/stock-screener'
 					className='hidden sm:flex items-center'
 				>
-					<span className='ml-4 text-xl font-semibold'>
+					<span className='md:text-xl font-semibold'>
 						Stock Screener
 					</span>
 				</Link>
@@ -29,7 +29,7 @@ const Header = (): JSX.Element => {
 					href='/stock-screener/settings'
 					className='flex items-center'
 				>
-					<span className='ml-4 text-xl font-semibold'>Settings</span>
+					<span className='md:text-xl font-semibold'>Settings</span>
 				</Link>
 				<UserButton />
 			</div>

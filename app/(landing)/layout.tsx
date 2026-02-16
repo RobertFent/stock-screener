@@ -34,7 +34,7 @@ const ClerkMenu = (): JSX.Element => {
 						href='/stock-screener'
 						className='hidden sm:flex items-center'
 					>
-						<span className='ml-4 text-xl font-semibold'>
+						<span className='md:text-xl font-semibold'>
 							Stock Screener
 						</span>
 					</Link>
@@ -51,15 +51,18 @@ const Header = (): JSX.Element => {
 			{/* left items */}
 			<Link href='/stock-screener' className='flex items-center'>
 				<CircleIcon className='h-6 w-6 text-primary' />
-				<span className='ml-2 text-xl font-semibold'>
+				<span className='ml-2 md:text-xl font-semibold'>
 					Stock Screener
 				</span>
 			</Link>
 			{/* right items */}
 			<div className='flex items-center space-x-4'>
 				<Link href='/pricing'>
-					<span className='sm:ml-2 text-xl font-semibold'>
-						Pricing
+					<span className='md:text-xl font-semibold'>Pricing</span>
+				</Link>
+				<Link href='/privacy-policy'>
+					<span className='md:text-xl font-semibold text-nowrap'>
+						Privacy Policy
 					</span>
 				</Link>
 				{/* // todo: blog */}

@@ -72,7 +72,7 @@ export default function HomePage(): JSX.Element {
 				</div>
 			</section>
 
-			<section className='py-12 bg-secondary w-full'>
+			<section className='py-6 md:py-12 bg-secondary w-full'>
 				<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
 					<div className='lg:grid lg:grid-cols-3 lg:gap-8'>
 						{FeatureElement(
@@ -94,7 +94,7 @@ export default function HomePage(): JSX.Element {
 				</div>
 			</section>
 
-			<section className='py-16'>
+			<section className='py-12 md:py-16'>
 				<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8'>
 					<div className='max-w-3xl mb-12'>
 						<h2 className='text-3xl font-bold tracking-tight sm:text-4xl'>
