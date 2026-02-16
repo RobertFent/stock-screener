@@ -194,7 +194,7 @@ export const deleteFilter = validatedActionWithUserAndTeamId(
 	deleteFilterSchema,
 	async (data, _, userWithTeam) => {
 		try {
-			deleteFilterById(data.id);
+			await deleteFilterById(data.id);
 			await logActivity(
 				userWithTeam.teamId,
 				userWithTeam.user.id,
@@ -215,7 +215,7 @@ export const updateDefaultFilter = validatedActionWithUserAndTeamId(
 	updateDefaultFilterSchema,
 	async (data, _, userWithTeam) => {
 		try {
-			updateDefaultFilterById(data.id, userWithTeam.teamId);
+			await updateDefaultFilterById(data.id, userWithTeam.teamId);
 			return { success: 'Default filter updated' };
 		} catch (error) {
 			log.error(formatError(error));

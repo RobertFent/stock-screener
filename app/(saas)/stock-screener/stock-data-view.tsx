@@ -540,6 +540,11 @@ const FilterRow = ({
 		}
 	}, [allFilters, saveFilterState, setCurrentFilter]);
 
+	const isAnyFilterPending =
+		isSaveFilterPending ||
+		isDeleteFilterPending ||
+		isUpdateDefaultFilterPending;
+
 	return (
 		<div className='w-full rounded-xl border p-4 bg-card shadow-sm'>
 			<div className='flex flex-row gap-2 items-center h-10'>
@@ -554,53 +559,55 @@ const FilterRow = ({
 					setLastAction={setLastAction}
 				/>
 				<div className='h-full'>
-					{(isSaveFilterPending ||
-						isDeleteFilterPending ||
-						isUpdateDefaultFilterPending) && (
+					{isAnyFilterPending && (
 						<Loader2 className='h-4 w-4 animate-spin' />
 					)}
-					{shouldDisplayActionState &&
-						lastAction === 'save' &&
-						saveFilterState.error && (
-							<p className='text-red-500'>
-								{saveFilterState.error}
-							</p>
-						)}
-					{shouldDisplayActionState &&
-						lastAction === 'save' &&
-						saveFilterState.success && (
-							<p className='text-green-500'>
-								{saveFilterState.success}
-							</p>
-						)}
-					{shouldDisplayActionState &&
-						lastAction === 'delete' &&
-						deleteFilterState.error && (
-							<p className='text-red-500'>
-								{deleteFilterState.error}
-							</p>
-						)}
-					{shouldDisplayActionState &&
-						lastAction === 'delete' &&
-						deleteFilterState.success && (
-							<p className='text-green-500'>
-								{deleteFilterState.success}
-							</p>
-						)}
-					{shouldDisplayActionState &&
-						lastAction === 'updateDefault' &&
-						updateDefaultFilterState.error && (
-							<p className='text-red-500'>
-								{updateDefaultFilterState.error}
-							</p>
-						)}
-					{shouldDisplayActionState &&
-						lastAction === 'updateDefault' &&
-						updateDefaultFilterState.success && (
-							<p className='text-green-500'>
-								{updateDefaultFilterState.success}
-							</p>
-						)}
+					{!isAnyFilterPending && (
+						<>
+							{shouldDisplayActionState &&
+								lastAction === 'save' &&
+								saveFilterState.error && (
+									<p className='text-red-500'>
+										{saveFilterState.error}
+									</p>
+								)}
+							{shouldDisplayActionState &&
+								lastAction === 'save' &&
+								saveFilterState.success && (
+									<p className='text-green-500'>
+										{saveFilterState.success}
+									</p>
+								)}
+							{shouldDisplayActionState &&
+								lastAction === 'delete' &&
+								deleteFilterState.error && (
+									<p className='text-red-500'>
+										{deleteFilterState.error}
+									</p>
+								)}
+							{shouldDisplayActionState &&
+								lastAction === 'delete' &&
+								deleteFilterState.success && (
+									<p className='text-green-500'>
+										{deleteFilterState.success}
+									</p>
+								)}
+							{shouldDisplayActionState &&
+								lastAction === 'updateDefault' &&
+								updateDefaultFilterState.error && (
+									<p className='text-red-500'>
+										{updateDefaultFilterState.error}
+									</p>
+								)}
+							{shouldDisplayActionState &&
+								lastAction === 'updateDefault' &&
+								updateDefaultFilterState.success && (
+									<p className='text-green-500'>
+										{updateDefaultFilterState.success}
+									</p>
+								)}
+						</>
+					)}
 				</div>
 			</div>
 			<div className='mt-4 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4'>
@@ -862,7 +869,7 @@ export default function StockDataView({
 }): JSX.Element {
 	const { data: allFilters, isLoading: isLoadingAllFilters } = useSWR<
 		Filter[]
-	>('/api/filters', fetcher); // todo: save indicator state too
+	>('/api/filters', fetcher);
 	const isInitialFilterSet = useRef(false);
 
 	// initial blank state
