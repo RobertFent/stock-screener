@@ -12,7 +12,7 @@ export const POST = withApiAuthAndTryCatch<
 
 	await resend.emails.send({
 		from: 'noreply@stock-screener.app',
-		to: 'info@robertfent.com',
+		to: 'support@stock-screener.app',
 		replyTo: email,
 		subject: `Contact form: ${name}`,
 		text: `From: ${name}; userId: ${user.id}; email: ${email}\n\n${message}`
