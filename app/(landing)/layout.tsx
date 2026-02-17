@@ -8,8 +8,7 @@ import {
 	ClerkLoading,
 	SignedIn,
 	SignedOut,
-	SignInButton,
-	UserButton
+	SignInButton
 } from '@clerk/nextjs';
 
 const ClerkMenu = (): JSX.Element => {
@@ -30,15 +29,11 @@ const ClerkMenu = (): JSX.Element => {
 				</SignedOut>
 
 				<SignedIn>
-					<Link
-						href='/stock-screener'
-						className='hidden sm:flex items-center'
-					>
-						<span className='md:text-xl font-semibold'>
-							Stock Screener
-						</span>
+					<Link href='/stock-screener'>
+						<button className='bg-primary rounded-full font-medium text-xl sm:h-12 px-4 sm:px-5 cursor-pointer'>
+							Open Stock Screener
+						</button>
 					</Link>
-					<UserButton />
 				</SignedIn>
 			</ClerkLoaded>
 		</>
@@ -49,7 +44,7 @@ const Header = (): JSX.Element => {
 	return (
 		<header className='border-b px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center overflow-auto'>
 			{/* left items */}
-			<Link href='/stock-screener' className='flex items-center'>
+			<Link href='/' className='flex items-center'>
 				<CircleIcon className='h-6 w-6 text-primary' />
 				<span className='ml-2 md:text-xl font-semibold'>
 					Stock Screener
@@ -57,14 +52,14 @@ const Header = (): JSX.Element => {
 			</Link>
 			{/* right items */}
 			<div className='flex items-center space-x-4'>
-				<Link href='/pricing'>
+				{/* <Link href='/pricing'>
 					<span className='md:text-xl font-semibold'>Pricing</span>
 				</Link>
 				<Link href='/privacy-policy'>
 					<span className='md:text-xl font-semibold text-nowrap'>
 						Privacy Policy
 					</span>
-				</Link>
+				</Link> */}
 				{/* // todo: blog */}
 				{/* <Link href='/blog'>
 					<span className='sm:ml-2 text-xl font-semibold'>Blog</span>

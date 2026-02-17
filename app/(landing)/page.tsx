@@ -2,6 +2,7 @@ import { Button } from '@/components/ui/button';
 import { ArrowRight, Database, UserCheck, ChartArea } from 'lucide-react';
 import { JSX } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 
 const FeatureElement = (
 	icon: JSX.Element,
@@ -22,6 +23,134 @@ const FeatureElement = (
 				</p>
 			</div>
 		</div>
+	);
+};
+
+const Footer = (): JSX.Element => {
+	return (
+		<footer className='border-t bg-background'>
+			<div className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
+				<div className='grid grid-cols-1 md:grid-cols-4 gap-10'>
+					{/* Brand */}
+					<div>
+						<h3 className='text-lg font-semibold'>
+							Stock Screener
+						</h3>
+						<p className='mt-4 text-sm text-muted-foreground max-w-xs'>
+							Advanced technical stock screening for S&P 500 &
+							Nasdaq 100 stocks. Filter hundreds of stocks based
+							on your favorite indicators in seconds.
+						</p>
+					</div>
+
+					{/* Product */}
+					<div>
+						<h4 className='text-sm font-semibold tracking-wide uppercase text-muted-foreground'>
+							Product
+						</h4>
+						<ul className='mt-4 space-y-3 text-sm'>
+							<li>
+								<Link
+									href='/stock-screener'
+									className='hover:text-primary transition'
+								>
+									Stock Screener
+								</Link>
+							</li>
+							<li>
+								<Link
+									href='/pricing'
+									className='hover:text-primary transition'
+								>
+									Pricing
+								</Link>
+							</li>
+							{/* // todo */}
+							{/* <li>
+								<Link
+									href='/features'
+									className='hover:text-primary transition'
+								>
+									Features
+								</Link>
+							</li> */}
+						</ul>
+					</div>
+
+					{/* Company */}
+					{/* // todo */}
+					<div>
+						<h4 className='text-sm font-semibold tracking-wide uppercase text-muted-foreground'>
+							Company
+						</h4>
+						<ul className='mt-4 space-y-3 text-sm'>
+							{/* <li>
+								<Link
+									href='/about'
+									className='hover:text-primary transition'
+								>
+									About
+								</Link>
+							</li> */}
+							<li>
+								<Link
+									href='/contact'
+									className='hover:text-primary transition'
+								>
+									Contact
+								</Link>
+							</li>
+						</ul>
+					</div>
+
+					{/* Legal */}
+					<div>
+						<h4 className='text-sm font-semibold tracking-wide uppercase text-muted-foreground'>
+							Legal
+						</h4>
+						<ul className='mt-4 space-y-3 text-sm'>
+							<li>
+								<Link
+									href='/privacy-policy'
+									className='hover:text-primary transition'
+								>
+									Privacy Policy
+								</Link>
+							</li>
+							{/* // todo */}
+							{/* <li>
+								<Link
+									href='/terms'
+									className='hover:text-primary transition'
+								>
+									Terms of Service
+								</Link>
+							</li>
+							<li>
+								<Link
+									href='/imprint'
+									className='hover:text-primary transition'
+								>
+									Imprint
+								</Link>
+							</li> */}
+						</ul>
+					</div>
+				</div>
+
+				{/* Bottom bar */}
+				<div className='mt-12 pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground'>
+					<p>
+						© {new Date().getFullYear()} Stock Screener by Robert
+						Fent
+					</p>
+					<p>
+						Market data provided for informational purposes only.
+						Not financial advice.
+					</p>
+				</div>
+			</div>
+		</footer>
 	);
 };
 
@@ -236,6 +365,7 @@ export default function HomePage(): JSX.Element {
 					</div>
 				</div>
 			</section>
+			<Footer />
 		</main>
 	);
 }
