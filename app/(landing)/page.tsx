@@ -59,14 +59,17 @@ export default function HomePage(): JSX.Element {
 								</Button>
 							</a>
 						</div>
-						<div className='mt-12 relative sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center'>
-							<Image
-								src='/images/stock_screener_example.png'
-								alt='Example stock screener'
-								width={400}
-								height={300}
-								className='w-full h-auto'
-							/>
+						<div className='mt-12 sm:max-w-lg sm:mx-auto lg:mt-0 lg:max-w-none lg:mx-0 lg:col-span-6 lg:flex lg:items-center'>
+							<video
+								src='/videos/demo_16_02.mp4'
+								controls
+								autoPlay
+								loop
+								muted
+								className='rounded-xl'
+							>
+								Your browser does not support the video tag.
+							</video>
 						</div>
 					</div>
 				</div>
