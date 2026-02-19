@@ -4,15 +4,28 @@ import { JSX } from 'react';
 import { getStripePrices, getStripeProducts } from '@/lib/payments/stripe';
 import { checkoutAction } from '@/lib/payments/actions';
 import Link from 'next/link';
+import { cacheTag, cacheLife } from 'next/cache';
+import { StripePrice, StripeProduct } from '@/lib/definitions/stripe';
 
-// Prices are fresh for one hour max
-export const revalidate = 3600;
+// prices are fresh for one hour max
+const getPricingData = async (): Promise<{
+	prices: StripePrice[];
+	products: StripeProduct[];
+}> => {
+	'use cache';
+	cacheTag('stripe-pricing');
+	cacheLife('hours'); // 1 hour TTL
 
-export default async function PricingPage(): Promise<JSX.Element> {
 	const [prices, products] = await Promise.all([
 		getStripePrices(),
 		getStripeProducts()
 	]);
+
+	return { prices, products };
+};
+
+export default async function PricingPage(): Promise<JSX.Element> {
+	const { prices, products } = await getPricingData();
 
 	const basePlan = products.find((product) => {
 		return product.name === 'Base';

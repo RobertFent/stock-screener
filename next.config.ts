@@ -2,7 +2,7 @@ import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
 	reactCompiler: true,
-	// cacheComponents: true, // todo: use 'use cache' otherwhere
+	cacheComponents: true,
 	serverExternalPackages: ['pino', 'pino-pretty'],
 	async rewrites() {
 		return [

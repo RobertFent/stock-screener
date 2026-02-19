@@ -1,4 +1,4 @@
-import { revalidatePath } from 'next/cache';
+import { revalidateTag } from 'next/cache';
 
 // this endpoint does not use user auth because its inteded to be called by scrapers
 export const POST = (req: Request): Response => {
@@ -9,7 +9,7 @@ export const POST = (req: Request): Response => {
 	}
 
 	// invalidate cache for stock screener so that user fetches updated stock data
-	revalidatePath('/stock-screener', 'page');
+	revalidateTag('stocks-cache', 'max');
 
 	return Response.json({ revalidated: true, now: Date.now() });
 };

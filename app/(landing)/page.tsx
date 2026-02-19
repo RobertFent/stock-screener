@@ -140,10 +140,7 @@ const Footer = (): JSX.Element => {
 
 				{/* Bottom bar */}
 				<div className='mt-12 pt-8 border-t flex flex-col sm:flex-row justify-between items-center gap-4 text-sm text-muted-foreground'>
-					<p>
-						© {new Date().getFullYear()} Stock Screener by Robert
-						Fent
-					</p>
+					<p>Stock Screener by Robert Fent</p>
 					<p>
 						Market data provided for informational purposes only.
 						Not financial advice.
