@@ -1142,8 +1142,8 @@ export default function StockDataView({
 									{selectedStock.willr_4.toPrecision(4)}%
 								</p>
 								<p>
-									Average Daily Range (ADR) 20: $
-									{selectedStock.adr_20}
+									Average Daily Range (ADR) 14: $
+									{selectedStock.adr_14}
 								</p>
 							</div>
 						</div>

@@ -297,13 +297,11 @@ export const enrichedStockData = z.object({
 	stoch_percent_d: z.number(),
 	macd_line_prev_day: z.number(),
 	macd_line_prev_prev_day: z.number(),
-	adr_20: z.string().nullable(), // numerics are received as strings
+	adr_14: z.string().nullable(), // numerics are received as strings
 	ma_200: z.string().nullable()
 });
 export const enrichedStockDataList = z.array(enrichedStockData);
 
-// todo: this still takes forever
-// CREATE INDEX CONCURRENTLY idx_stock_data_ticker_date ON stock_data (ticker, date DESC);
 export const selectAllStocks = async (): Promise<
 	z.infer<typeof enrichedStockDataList>
 > => {
