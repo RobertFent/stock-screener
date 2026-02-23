@@ -862,6 +862,77 @@ const IndicatorSelector = ({
 	);
 };
 
+const DataOverview = ({
+	selectedStock
+}: {
+	selectedStock: z.infer<typeof enrichedStockData>;
+}): JSX.Element => {
+	const formatDate = (date: string): string => {
+		return new Date(date).toDateString();
+	};
+
+	const formatPrecision = (value: number, precision = 4): string => {
+		return value?.toPrecision(precision);
+	};
+
+	const fields = [
+		{
+			label: 'Last Updated At',
+			value: formatDate(selectedStock.last_updated_at),
+			tooltip:
+				'Stock data is refreshed every 7am CET/CEST. If you do not see the latest data, please refresh the page'
+		},
+		{
+			label: 'Implied Volatility',
+			value: formatPrecision(selectedStock.iv)
+		},
+		{
+			label: 'Signal Date (AMC)',
+			value: formatDate(selectedStock.date)
+		},
+		{
+			label: 'Williams R% 14',
+			value: `${formatPrecision(selectedStock.willr_14)}%`
+		},
+		{
+			label: 'Williams R% 4',
+			value: `${formatPrecision(selectedStock.willr_4)}%`
+		},
+		{
+			label: 'Average Daily Range (ADR) 14',
+			value: `$${selectedStock.adr_14}`
+		}
+	];
+
+	return (
+		<div className='grid grid-cols-3 gap-2 place-items-center'>
+			{fields.map(({ label, value, tooltip }) => {
+				return (
+					<div key={label} className='flex items-center gap-1'>
+						<p>
+							{label}: {value}
+						</p>
+
+						{tooltip && (
+							<Tooltip>
+								<TooltipTrigger asChild>
+									<span className='cursor-pointer'>
+										<HelpCircle
+											size={14}
+											className='text-muted-foreground'
+										/>
+									</span>
+								</TooltipTrigger>
+								<TooltipContent>{tooltip}</TooltipContent>
+							</Tooltip>
+						)}
+					</div>
+				);
+			})}
+		</div>
+	);
+};
+
 export default function StockDataView({
 	stocks
 }: {
@@ -1116,36 +1187,7 @@ export default function StockDataView({
 								selectedIndicators={indicators}
 								setSelectedIndicators={setIndicators}
 							/>
-							<div className='grid grid-cols-3 gap-2'>
-								<p>
-									Last Updated At:{' '}
-									{new Date(
-										selectedStock.last_updated_at
-									).toDateString()}
-								</p>
-								<p>
-									Implied Volatility:{' '}
-									{selectedStock.iv.toPrecision(4)}
-								</p>
-								<p>
-									Signal Date (AMC):{' '}
-									{new Date(
-										selectedStock.date
-									).toDateString()}
-								</p>
-								<p>
-									Williams R% 14:{' '}
-									{selectedStock.willr_14.toPrecision(4)}%
-								</p>
-								<p>
-									Williams R% 4:{' '}
-									{selectedStock.willr_4.toPrecision(4)}%
-								</p>
-								<p>
-									Average Daily Range (ADR) 14: $
-									{selectedStock.adr_14}
-								</p>
-							</div>
+							<DataOverview selectedStock={selectedStock} />
 						</div>
 					)}
 				</div>
