@@ -880,7 +880,7 @@ const DataOverview = ({
 			label: 'Last Updated At',
 			value: formatDate(selectedStock.last_updated_at),
 			tooltip:
-				'Stock data is refreshed every 7am CET/CEST. If you do not see the latest data, please refresh the page'
+				'Stock data is refreshed every 8:15am CET/CEST. If you do not see the latest data, please refresh the page'
 		},
 		{
 			label: 'Implied Volatility',

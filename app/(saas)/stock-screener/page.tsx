@@ -1,7 +1,7 @@
 import { enrichedStockDataList, selectAllStocks } from '@/lib/db/queries';
 import { JSX } from 'react';
 import StockDataView from './stock-data-view';
-import { cacheLife, cacheTag } from 'next/cache';
+import { cacheTag } from 'next/cache';
 import z from '@/node_modules/zod/v4/classic/external.cjs';
 
 // cache the request marked with certain tag.
@@ -10,7 +10,6 @@ import z from '@/node_modules/zod/v4/classic/external.cjs';
 const getStocks = async (): Promise<z.infer<typeof enrichedStockDataList>> => {
 	'use cache';
 	cacheTag('stocks-cache');
-	cacheLife('days');
 	return selectAllStocks();
 };
 

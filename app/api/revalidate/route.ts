@@ -9,7 +9,7 @@ export const POST = (req: Request): Response => {
 	}
 
 	// invalidate cache for stock screener so that user fetches updated stock data
-	revalidateTag('stocks-cache', 'max');
+	revalidateTag('stocks-cache', 'default');
 
 	return Response.json({ revalidated: true, now: Date.now() });
 };
