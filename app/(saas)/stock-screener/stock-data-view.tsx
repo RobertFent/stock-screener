@@ -899,8 +899,8 @@ const DataOverview = ({
 			value: `${formatPrecision(selectedStock.willr_4)}%`
 		},
 		{
-			label: 'Average Daily Range (ADR) 14',
-			value: `$${selectedStock.adr_14}`
+			label: 'Average Daily Range (ADR) 7',
+			value: `$${selectedStock.adr_7}`
 		}
 	];
 

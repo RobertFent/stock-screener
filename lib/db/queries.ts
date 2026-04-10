@@ -277,6 +277,7 @@ export const deleteUserWithTeamMembership = async (
 export const enrichedStockData = z.object({
 	id: z.number(),
 	ticker: z.string(),
+	index: z.string(),
 	date: z.string(),
 	close: z.number(),
 	high: z.number(),
@@ -297,7 +298,8 @@ export const enrichedStockData = z.object({
 	stoch_percent_d: z.number(),
 	macd_line_prev_day: z.number(),
 	macd_line_prev_prev_day: z.number(),
-	adr_14: z.string().nullable(), // numerics are received as strings
+	adr_7: z.string().nullable(), // numerics are received as strings
+	adr_14: z.string().nullable(),
 	ma_200: z.string().nullable()
 });
 export const enrichedStockDataList = z.array(enrichedStockData);
