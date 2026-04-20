@@ -309,27 +309,31 @@ export const selectAllStocks = async (): Promise<
 > => {
 	// more performant approach due to large data set -> using rn prevents lag fct on every col
 	const result = await stockAnalysisDb.execute(sql`
-    WITH recent_dates AS (
-		SELECT
-			*,
-			ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY date DESC) AS rn
-		FROM stock_data
+    WITH tickers AS (
+		SELECT DISTINCT ticker FROM stock_data
 	),
-	filtered AS (
-		SELECT *
-		FROM recent_dates
-		WHERE rn <= 4 -- get enough rows for LAG(1) and LAG(2)
+	recent AS (
+		SELECT sd.*
+		FROM tickers t
+		CROSS JOIN LATERAL (
+			SELECT *
+			FROM stock_data
+			WHERE ticker = t.ticker
+			ORDER BY date DESC
+			LIMIT 3
+		) sd
 	),
 	enriched AS (
-		SELECT
-			*,
-			LAG(macd_line, 1) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_day,
-			LAG(macd_line, 2) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_prev_day
-		FROM filtered
+	SELECT
+		*,
+		ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY date DESC) AS rn,
+		LAG(macd_line, 1) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_day,
+		LAG(macd_line, 2) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_prev_day
+	FROM recent
 	)
 	SELECT *
 	FROM enriched
-	WHERE rn <= 1 -- only last dates per ticker
+	WHERE rn = 1
 	ORDER BY ticker, date DESC;
   `);
 	const allStocks = enrichedStockDataList.parse(result);

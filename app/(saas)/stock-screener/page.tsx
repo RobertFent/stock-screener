@@ -1,4 +1,3 @@
-import { connection } from 'next/server';
 import { enrichedStockDataList, selectAllStocks } from '@/lib/db/queries';
 import { JSX } from 'react';
 import StockDataView from './stock-data-view';
@@ -18,8 +17,6 @@ const getStocks = async (): Promise<z.infer<typeof enrichedStockDataList>> => {
 };
 
 export default async function SaasPage(): Promise<JSX.Element> {
-	// todo: remove this after query gets faster
-	await connection(); // forces dynamic rendering, no build-time prerender -> getStocks won't run into timeout
 	const stocks = await getStocks();
 	return (
 		<main className='p-4'>
