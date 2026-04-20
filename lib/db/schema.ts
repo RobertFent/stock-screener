@@ -6,7 +6,8 @@ import {
 	timestamp,
 	bigint,
 	boolean,
-	integer
+	integer,
+	pgEnum
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
 
@@ -49,6 +50,8 @@ export const teamMembers = pgTable('team_members', {
 	deletedAt: timestamp('deleted_at')
 });
 
+export const indexEnum = pgEnum('indices', ['sp100', 'sp500', 'nasdaq100']);
+
 export const filters = pgTable('filters', {
 	id: uuid('id').primaryKey().defaultRandom(),
 	userId: uuid('user_id')
@@ -62,6 +65,7 @@ export const filters = pgTable('filters', {
 			return teams.id;
 		}),
 	name: varchar('name', { length: 255 }).notNull(),
+	indices: indexEnum().array(),
 	minVolume: bigint('min_volume', { mode: 'number' }),
 	maxRSI4: integer('max_rsi4'),
 	maxRSI14: integer('max_rsi14'),

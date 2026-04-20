@@ -53,6 +53,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 type FilterUI = {
 	id: string | null;
 	name: string;
+	indices: string[] | null;
 	createdAt: string | null;
 	minVolume: number | null;
 	maxRSI4: number | null;
@@ -96,12 +97,26 @@ const INDICATOR_OPTIONS: Study[] = [
 	}
 ];
 
+const SUPPORTED_INDICES = [
+	{ key: 'sp100', value: 'S&P 100' },
+	{ key: 'sp500', value: 'S&P 500' },
+	{ key: 'nasdaq100', value: 'Nasdaq 100' }
+];
+
 type LastAction = 'save' | 'delete' | 'updateDefault' | null;
 
 const parseFilterUIToFormData = (filter: FilterUI): FormData => {
 	const fd = new FormData();
 
 	fd.set('name', filter.name);
+
+	if (filter.indices !== undefined) {
+		// clear any previous values first if this fd is reused
+		fd.delete('indices');
+		for (const idx of filter.indices ?? []) {
+			fd.append('indices', idx);
+		}
+	}
 
 	if (filter.minVolume !== undefined) {
 		fd.set('minVolume', String(filter.minVolume));
@@ -171,6 +186,7 @@ const parseFilterDBObjectToFilterUI = (filter: Filter): FilterUI => {
 	return {
 		id: filter.id,
 		name: filter.name,
+		indices: filter.indices,
 		createdAt: new Date(filter.createdAt).toISOString(),
 		minVolume: filter.minVolume,
 		maxRSI4: filter.maxRSI4,
@@ -225,145 +241,243 @@ const SelectFilterCombobox = ({
 	})?.name;
 
 	return (
-		<>
+		<Popover open={open} onOpenChange={setOpen}>
+			<PopoverTrigger asChild>
+				{isLoadingAllFilters ? (
+					<div className='w-[250px] h-9 rounded-md bg-muted animate-pulse' />
+				) : (
+					<Button
+						variant='outline'
+						role='combobox'
+						aria-expanded={open}
+						className='w-[250px] justify-between'
+					>
+						{fixFilterName ?? 'Select filter preset...'}
+						<ChevronsUpDownIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+					</Button>
+				)}
+			</PopoverTrigger>
+			<PopoverContent className='w-[250px] p-1'>
+				<Command>
+					<CommandList>
+						<CommandGroup>
+							{sortedFilters.map((filter) => {
+								return (
+									<div
+										key={filter.id}
+										className='flex flex-row items-center p-0 mt-1 mb-1'
+									>
+										<CommandItem
+											key={filter.id}
+											value={filter.id}
+											onSelect={() => {
+												setOpen(false);
+												setCurrentFilter(
+													parseFilterDBObjectToFilterUI(
+														filter
+													)
+												);
+											}}
+											className='w-3/4 p-0' // 75%
+										>
+											<Button
+												variant={
+													currentFilter.id ===
+													filter.id
+														? 'secondary'
+														: 'ghost'
+												}
+												className={`overflow-auto w-full justify-start ${
+													currentFilter.id ===
+													filter.id
+														? 'bg-secondary'
+														: ''
+												}`}
+											>
+												{filter.name}
+											</Button>
+										</CommandItem>
+										<div className='flex flex-row w-1/4'>
+											<Button
+												variant='link'
+												className='w-1/2'
+												onClick={() => {
+													setLastAction(
+														'updateDefault'
+													);
+													const fd = new FormData();
+													fd.set('id', filter.id);
+													startTransition(() => {
+														updateDefaultFilterAction(
+															fd
+														);
+													});
+												}}
+											>
+												<StarIcon
+													fill={
+														filter.isDefault
+															? 'gold'
+															: 'none'
+													}
+												/>
+											</Button>
+											<Button
+												variant='link'
+												className='w-1/2'
+												onClick={() => {
+													setLastAction('delete');
+													const fd = new FormData();
+													fd.set('id', filter.id);
+													startTransition(() => {
+														deleteFilterAction(fd);
+													});
+												}}
+											>
+												<TrashIcon />
+											</Button>
+										</div>
+									</div>
+								);
+							})}
+							<div className='flex flex-row gap-2'>
+								<Input
+									type='text'
+									value={currentFilter.name ?? ''}
+									onChange={(e) => {
+										setCurrentFilter((prevFilters) => {
+											return {
+												...prevFilters,
+												name: e.target.value
+											};
+										});
+									}}
+								/>
+								<Button
+									variant='link'
+									onClick={() => {
+										setLastAction('save');
+										const fd =
+											parseFilterUIToFormData(
+												currentFilter
+											);
+										startTransition(() => {
+											saveFilterAction(fd);
+										});
+									}}
+								>
+									<SaveIcon />
+								</Button>
+							</div>
+						</CommandGroup>
+					</CommandList>
+				</Command>
+			</PopoverContent>
+		</Popover>
+	);
+};
+
+const SelectIndicesCombobox = ({
+	currentFilter,
+	setCurrentFilter
+}: {
+	currentFilter: FilterUI;
+	setCurrentFilter: Dispatch<SetStateAction<FilterUI>>;
+}): JSX.Element => {
+	const [open, setOpen] = React.useState(false);
+
+	const selectedIndicesNames = currentFilter.indices
+		?.map((index) => {
+			return SUPPORTED_INDICES.find((supported_index) => {
+				return supported_index.key === index;
+			})?.value;
+		})
+		.join(', ');
+
+	// todo: save filter to db
+	return (
+		<div className='flex flex-col space-y-1'>
+			<label className='text-sm font-medium text-muted-foreground text-left'>
+				Selected Indices
+			</label>
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger asChild>
-					{isLoadingAllFilters ? (
-						<div className='w-[250px] h-9 rounded-md bg-muted animate-pulse' />
-					) : (
-						<Button
-							variant='outline'
-							role='combobox'
-							aria-expanded={open}
-							className='w-[250px] justify-between'
-						>
-							{fixFilterName ?? 'Select filter preset...'}
-							<ChevronsUpDownIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
-						</Button>
-					)}
+					<Button
+						variant='outline'
+						role='combobox'
+						aria-expanded={open}
+						className='justify-start gap-2 overflow-auto'
+					>
+						<ChevronsUpDownIcon className='h-4 w-4 opacity-50' />
+						{selectedIndicesNames ?? 'None'}
+					</Button>
 				</PopoverTrigger>
 				<PopoverContent className='w-[250px] p-1'>
 					<Command>
 						<CommandList>
 							<CommandGroup>
-								{sortedFilters.map((filter) => {
+								{SUPPORTED_INDICES.map((index) => {
+									const alreadyIncludesIndex =
+										currentFilter.indices?.includes(
+											index.key
+										) ?? false;
 									return (
-										<div
-											key={filter.id}
-											className='flex flex-row items-center p-0 mt-1 mb-1'
+										<CommandItem
+											key={index.key}
+											value={index.value}
+											onSelect={() => {
+												setOpen(false);
+											}}
+											className='p-0.5'
 										>
-											<CommandItem
-												key={filter.id}
-												value={filter.id}
-												onSelect={() => {
-													setOpen(false);
-													setCurrentFilter(
-														parseFilterDBObjectToFilterUI(
-															filter
-														)
-													);
+											<Button
+												variant={
+													alreadyIncludesIndex
+														? 'secondary'
+														: 'ghost'
+												}
+												className={`overflow-auto w-full justify-start ${
+													alreadyIncludesIndex
+														? 'bg-secondary'
+														: ''
+												}`}
+												onClick={() => {
+													setCurrentFilter((prev) => {
+														return {
+															...prev,
+															indices:
+																alreadyIncludesIndex
+																	? (prev.indices?.filter(
+																			(
+																				k
+																			) => {
+																				return (
+																					k !==
+																					index.key
+																				);
+																			}
+																		) ??
+																		null)
+																	: [
+																			...(prev.indices ??
+																				[]),
+																			index.key
+																		]
+														};
+													});
 												}}
-												className='w-3/4 p-0' // 75%
 											>
-												<Button
-													variant={
-														currentFilter.id ===
-														filter.id
-															? 'secondary'
-															: 'ghost'
-													}
-													className={`overflow-auto w-full justify-start ${
-														currentFilter.id ===
-														filter.id
-															? 'bg-secondary'
-															: ''
-													}`}
-												>
-													{filter.name}
-												</Button>
-											</CommandItem>
-											<div className='flex flex-row w-1/4'>
-												<Button
-													variant='link'
-													className='w-1/2'
-													onClick={() => {
-														setLastAction(
-															'updateDefault'
-														);
-														const fd =
-															new FormData();
-														fd.set('id', filter.id);
-														startTransition(() => {
-															updateDefaultFilterAction(
-																fd
-															);
-														});
-													}}
-												>
-													<StarIcon
-														fill={
-															filter.isDefault
-																? 'gold'
-																: 'none'
-														}
-													/>
-												</Button>
-												<Button
-													variant='link'
-													className='w-1/2'
-													onClick={() => {
-														setLastAction('delete');
-														const fd =
-															new FormData();
-														fd.set('id', filter.id);
-														startTransition(() => {
-															deleteFilterAction(
-																fd
-															);
-														});
-													}}
-												>
-													<TrashIcon />
-												</Button>
-											</div>
-										</div>
+												{index.value}
+											</Button>
+										</CommandItem>
 									);
 								})}
-								<div className='flex flex-row gap-2'>
-									<Input
-										type='text'
-										value={currentFilter.name ?? ''}
-										onChange={(e) => {
-											setCurrentFilter((prevFilters) => {
-												return {
-													...prevFilters,
-													name: e.target.value
-												};
-											});
-										}}
-									/>
-									<Button
-										variant='link'
-										onClick={() => {
-											setLastAction('save');
-											const fd =
-												parseFilterUIToFormData(
-													currentFilter
-												);
-											startTransition(() => {
-												saveFilterAction(fd);
-											});
-										}}
-									>
-										<SaveIcon />
-									</Button>
-								</div>
 							</CommandGroup>
 						</CommandList>
 					</Command>
 				</PopoverContent>
 			</Popover>
-		</>
+		</div>
 	);
 };
 
@@ -611,6 +725,11 @@ const FilterRow = ({
 				</div>
 			</div>
 			<div className='mt-4 grid grid-cols-1 md:grid-cols-4 lg:grid-cols-6 gap-4'>
+				{/* --- Indices ---  */}
+				<SelectIndicesCombobox
+					currentFilter={currentFilter}
+					setCurrentFilter={setCurrentFilter}
+				/>
 				{/* --- Volume --- */}
 				<FilterNumberInput
 					label='Min. Volume'
@@ -947,6 +1066,7 @@ export default function StockDataView({
 	const [currentFilter, setCurrentFilter] = useState<FilterUI>({
 		id: null,
 		name: 'default filter',
+		indices: ['sp100', 'sp500', 'nasdaq100'],
 		createdAt: new Date().toISOString(),
 		minVolume: null,
 		maxRSI4: null,
@@ -1127,6 +1247,10 @@ export default function StockDataView({
 				currentFilter.stochasticsKAboveD &&
 				stock.stoch_percent_k <= stock.stoch_percent_d
 			) {
+				return false;
+			}
+
+			if (!currentFilter.indices?.includes(stock.index)) {
 				return false;
 			}
 

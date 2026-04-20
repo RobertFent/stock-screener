@@ -45,13 +45,23 @@ export const validatedActionWithUserAndTeamId = <
 			throw Error('User does not exist or no team is assigned to user');
 		}
 
-		const result = schema.safeParse(Object.fromEntries(formData));
+		const result = schema.safeParse(formDataToObject(formData));
 		if (!result.success) {
 			return { error: result.error.issues[0].message };
 		}
 
 		return action(result.data, formData, databaseUserWithTeamId);
 	};
+};
+
+// this method is needed when arrays are send (multi same key)
+const formDataToObject = (formData: FormData): Record<string, unknown> => {
+	const obj: Record<string, unknown> = {};
+	for (const key of new Set(formData.keys())) {
+		const values = formData.getAll(key);
+		obj[key] = values.length > 1 ? values : values[0];
+	}
+	return obj;
 };
 
 type ActionWithUserAndTeamFunction<T> = (

@@ -29,6 +29,13 @@
       "when": 1771061910694,
       "tag": "0003_sudden_joystick",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1776673344403,
+      "tag": "0004_stale_prowler",
+      "breakpoints": true
     }
   ]
 }

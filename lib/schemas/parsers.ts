@@ -6,6 +6,7 @@ export const parseFilterFormToDBForm = (
 ): FilterDBInput => {
 	return {
 		name: filter.name,
+		indices: filter.indices,
 		minVolume: toOptionalNumber(filter.minVolume),
 		maxRSI4: toOptionalNumber(filter.maxRSI4),
 		maxRSI14: toOptionalNumber(filter.maxRSI14),

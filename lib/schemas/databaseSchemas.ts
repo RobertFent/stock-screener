@@ -1,7 +1,10 @@
 import z from 'zod';
 
+const SupportedIndex = z.enum(['sp100', 'sp500', 'nasdaq100']);
+
 export const filtersDBSchema = z.object({
 	name: z.string(),
+	indices: z.array(SupportedIndex).optional(),
 	minVolume: z.number().optional(),
 	maxRSI4: z.number().optional(),
 	maxRSI14: z.number().optional(),
