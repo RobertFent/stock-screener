@@ -13,6 +13,8 @@ import {
 } from 'react';
 import { mutate } from 'swr';
 import {
+	Check,
+	ChevronDown,
 	ChevronsUpDownIcon,
 	HelpCircle,
 	Loader2,
@@ -21,8 +23,11 @@ import {
 	StarIcon,
 	TrashIcon
 } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Switch } from '@/components/ui/switch';
 import {
 	Command,
@@ -55,6 +60,8 @@ import {
 	type ScreenerFilter
 } from '@/lib/screener/filter';
 
+const PANEL_STORAGE_KEY = 'screener:filters-open';
+
 type NumberField = {
 	key: NumericFilterKey;
 	label: string;
@@ -66,59 +73,59 @@ type NumberField = {
 const UNIVERSE_FIELDS: readonly NumberField[] = [
 	{
 		key: 'minVolume',
-		label: 'Min. volume',
+		label: 'Min vol',
 		step: 100000,
-		tooltip: 'Average daily volume of the last session'
+		tooltip: 'Traded volume of the last session'
 	},
-	{ key: 'minClose', label: 'Min. price', step: 1, placeholder: '$' },
-	{ key: 'maxClose', label: 'Max. price', step: 1, placeholder: '$' },
+	{ key: 'minClose', label: 'Min price', step: 1, placeholder: '$' },
+	{ key: 'maxClose', label: 'Max price', step: 1, placeholder: '$' },
 	{
 		key: 'minAdrPercent7',
-		label: 'Min. ADR% 7',
+		label: 'Min ADR%',
 		step: 0.1,
 		tooltip:
-			'Average daily range over 7 sessions, as a percentage of the closing price. A common momentum-trading floor is 3%.'
-	}
-];
-
-const MOMENTUM_FIELDS: readonly NumberField[] = [
-	{ key: 'maxRSI4', label: 'Max. RSI 4', tooltip: 'RSI(4)' },
-	{ key: 'maxRSI14', label: 'Max. RSI 14', tooltip: 'RSI(14)' },
-	{
-		key: 'minWillr4',
-		label: 'Min. Williams %R 4',
-		tooltip: 'willr(4), ranges from -100 (oversold) to 0 (overbought)'
-	},
-	{
-		key: 'maxWillr4',
-		label: 'Max. Williams %R 4',
-		tooltip: 'willr(4), ranges from -100 (oversold) to 0 (overbought)'
-	},
-	{
-		key: 'minWillr14',
-		label: 'Min. Williams %R 14',
-		tooltip: 'willr(14), ranges from -100 (oversold) to 0 (overbought)'
-	},
-	{
-		key: 'maxWillr14',
-		label: 'Max. Williams %R 14',
-		tooltip: 'willr(14), ranges from -100 (oversold) to 0 (overbought)'
-	},
-	{
-		key: 'minStochK',
-		label: 'Min. Stochastics %K',
-		tooltip: 'stochastic slow(14, 3, 3)'
-	},
-	{
-		key: 'maxStochK',
-		label: 'Max. Stochastics %K',
-		tooltip: 'stochastic slow(14, 3, 3)'
+			'Average daily range over 7 sessions as a percentage of the close. A common momentum-trading floor is 3%.'
 	}
 ];
 
 const VOLATILITY_FIELDS: readonly NumberField[] = [
-	{ key: 'minIV', label: 'Min. IV', tooltip: 'IV(30)' },
-	{ key: 'maxIV', label: 'Max. IV', tooltip: 'IV(30)' }
+	{ key: 'minIV', label: 'Min IV', tooltip: 'IV(30)' },
+	{ key: 'maxIV', label: 'Max IV', tooltip: 'IV(30)' }
+];
+
+const MOMENTUM_FIELDS: readonly NumberField[] = [
+	{ key: 'maxRSI4', label: 'Max RSI 4', tooltip: 'RSI(4)' },
+	{ key: 'maxRSI14', label: 'Max RSI 14', tooltip: 'RSI(14)' },
+	{
+		key: 'minWillr4',
+		label: 'Min %R 4',
+		tooltip: 'willr(4) — runs from -100 (oversold) to 0 (overbought)'
+	},
+	{
+		key: 'maxWillr4',
+		label: 'Max %R 4',
+		tooltip: 'willr(4) — runs from -100 (oversold) to 0 (overbought)'
+	},
+	{
+		key: 'minWillr14',
+		label: 'Min %R 14',
+		tooltip: 'willr(14) — runs from -100 (oversold) to 0 (overbought)'
+	},
+	{
+		key: 'maxWillr14',
+		label: 'Max %R 14',
+		tooltip: 'willr(14) — runs from -100 (oversold) to 0 (overbought)'
+	},
+	{
+		key: 'minStochK',
+		label: 'Min %K',
+		tooltip: 'stochastic slow(14, 3, 3)'
+	},
+	{
+		key: 'maxStochK',
+		label: 'Max %K',
+		tooltip: 'stochastic slow(14, 3, 3)'
+	}
 ];
 
 const SWITCH_FIELDS: readonly {
@@ -130,17 +137,17 @@ const SWITCH_FIELDS: readonly {
 	{ key: 'closeAboveMA200', label: 'Close > MA200' },
 	{
 		key: 'macdIncreasing',
-		label: 'MACD increasing (last 3 days)',
+		label: 'MACD rising (3d)',
 		tooltip: 'macd(26, 12, 9)'
 	},
 	{
 		key: 'macdLineAboveSignal',
-		label: 'MACD line above signal line',
+		label: 'MACD > signal',
 		tooltip: 'macd(26, 12, 9)'
 	},
 	{
 		key: 'stochasticsKAboveD',
-		label: 'Stochastics %K above %D',
+		label: '%K > %D',
 		tooltip: 'stochastic slow(14, 3, 3)'
 	}
 ];
@@ -149,14 +156,39 @@ const InfoTooltip = ({ content }: { content: string }): JSX.Element => {
 	return (
 		<Tooltip>
 			<TooltipTrigger asChild>
-				<span className='cursor-pointer'>
-					<HelpCircle size={14} className='text-muted-foreground' />
+				<span className='text-muted-foreground/70 hover:text-muted-foreground cursor-help transition-colors'>
+					<HelpCircle className='size-3' />
 				</span>
 			</TooltipTrigger>
-			<TooltipContent className='max-w-72 text-left'>
-				{content}
-			</TooltipContent>
+			<TooltipContent className='text-left'>{content}</TooltipContent>
 		</Tooltip>
+	);
+};
+
+const FieldLabel = ({
+	htmlFor,
+	label,
+	tooltip,
+	active
+}: {
+	htmlFor?: string;
+	label: string;
+	tooltip?: string;
+	active?: boolean;
+}): JSX.Element => {
+	return (
+		<div className='flex items-center gap-1'>
+			<label
+				htmlFor={htmlFor}
+				className={cn(
+					'text-[11px] font-medium tracking-wide uppercase transition-colors',
+					active ? 'text-primary' : 'text-muted-foreground'
+				)}
+			>
+				{label}
+			</label>
+			{tooltip && <InfoTooltip content={tooltip} />}
+		</div>
 	);
 };
 
@@ -185,23 +217,24 @@ const NumberFilterInput = ({
 	}
 
 	return (
-		<div className='flex flex-col space-y-1'>
-			<div className='flex flex-row items-center gap-1'>
-				<label
-					htmlFor={inputId}
-					className='text-left text-sm font-medium text-muted-foreground'
-				>
-					{field.label}
-				</label>
-				{field.tooltip && <InfoTooltip content={field.tooltip} />}
-			</div>
+		<div className='flex flex-col gap-1'>
+			<FieldLabel
+				htmlFor={inputId}
+				label={field.label}
+				tooltip={field.tooltip}
+				active={value !== null}
+			/>
 			<Input
 				id={inputId}
 				type='number'
 				step={field.step}
 				inputMode='decimal'
-				placeholder={field.placeholder ?? '-'}
+				placeholder={field.placeholder ?? '–'}
 				value={raw}
+				className={cn(
+					'h-8 px-2 text-[13px] tabular',
+					value !== null && 'border-primary/40 text-foreground'
+				)}
 				onChange={(event) => {
 					const next = event.target.value;
 					setRaw(next);
@@ -230,9 +263,16 @@ const SwitchFilterInput = ({
 	onChange: (checked: boolean) => void;
 }): JSX.Element => {
 	return (
-		<label className='flex items-center gap-2 text-sm'>
+		<label
+			className={cn(
+				'border-hairline flex cursor-pointer items-center gap-2 rounded-md border px-2.5 py-1.5 text-[13px] transition-colors',
+				checked
+					? 'border-primary/40 bg-primary/8 text-foreground'
+					: 'bg-surface-1 text-muted-foreground hover:bg-surface-2'
+			)}
+		>
 			<Switch checked={checked} onCheckedChange={onChange} />
-			{label}
+			<span className='whitespace-nowrap'>{label}</span>
 			{tooltip && <InfoTooltip content={tooltip} />}
 		</label>
 	);
@@ -247,49 +287,56 @@ const IndicesSelect = ({
 }): JSX.Element => {
 	const [open, setOpen] = useState(false);
 
-	const selectedNames = SUPPORTED_INDICES.filter((index) => {
-		return indices.includes(index.key);
-	})
-		.map((index) => {
-			return index.value;
-		})
-		.join(', ');
+	const label =
+		indices.length === 0
+			? 'None'
+			: indices.length === SUPPORTED_INDICES.length
+				? 'All indices'
+				: SUPPORTED_INDICES.filter((index) => {
+						return indices.includes(index.key);
+					})
+						.map((index) => {
+							return index.value;
+						})
+						.join(', ');
 
 	return (
-		<div className='flex flex-col space-y-1'>
-			<span className='text-left text-sm font-medium text-muted-foreground'>
-				Indices
-			</span>
+		<div className='flex flex-col gap-1'>
+			<FieldLabel
+				label='Indices'
+				active={
+					indices.length > 0 &&
+					indices.length < SUPPORTED_INDICES.length
+				}
+			/>
 			<Popover open={open} onOpenChange={setOpen}>
 				<PopoverTrigger asChild>
 					<Button
 						variant='outline'
 						role='combobox'
 						aria-expanded={open}
-						className='justify-start gap-2 overflow-hidden'
+						className='h-8 justify-between gap-2 px-2 text-[13px] font-normal'
 					>
-						<ChevronsUpDownIcon className='h-4 w-4 shrink-0 opacity-50' />
-						<span className='truncate'>
-							{selectedNames === '' ? 'None' : selectedNames}
-						</span>
+						<span className='truncate'>{label}</span>
+						<ChevronsUpDownIcon className='size-3.5 shrink-0 opacity-50' />
 					</Button>
 				</PopoverTrigger>
-				<PopoverContent className='w-[250px] p-1'>
+				<PopoverContent align='start' className='w-56 p-1'>
 					<Command>
 						<CommandList>
 							<CommandGroup>
 								{SUPPORTED_INDICES.map((index) => {
-									const isSelected = indices.includes(
+									const selected = indices.includes(
 										index.key
 									);
 									return (
 										<CommandItem
 											key={index.key}
 											value={index.value}
-											className='p-0.5'
+											className='cursor-pointer gap-2 text-sm'
 											onSelect={() => {
 												onChange(
-													isSelected
+													selected
 														? indices.filter(
 																(key) => {
 																	return (
@@ -307,13 +354,16 @@ const IndicesSelect = ({
 										>
 											<span
 												className={cn(
-													'w-full justify-start rounded px-2 py-1',
-													isSelected && 'bg-secondary'
+													'border-border-strong flex size-4 items-center justify-center rounded border',
+													selected &&
+														'border-primary bg-primary text-primary-foreground'
 												)}
 											>
-												{isSelected ? '✓ ' : ''}
-												{index.value}
+												{selected && (
+													<Check className='size-3' />
+												)}
 											</span>
+											{index.value}
 										</CommandItem>
 									);
 								})}
@@ -323,6 +373,25 @@ const IndicesSelect = ({
 				</PopoverContent>
 			</Popover>
 		</div>
+	);
+};
+
+const FieldGroup = ({
+	title,
+	className,
+	children
+}: {
+	title: string;
+	className?: string;
+	children: React.ReactNode;
+}): JSX.Element => {
+	return (
+		<section className={className}>
+			<h3 className='text-muted-foreground/70 mb-2 text-[10px] font-semibold tracking-[0.14em] uppercase'>
+				{title}
+			</h3>
+			{children}
+		</section>
 	);
 };
 
@@ -341,6 +410,7 @@ export const FilterPanel = ({
 }): JSX.Element => {
 	const [presetOpen, setPresetOpen] = useState(false);
 	const [lastAction, setLastAction] = useState<LastAction>(null);
+	const [expanded, setExpanded] = useState(true);
 
 	const [saveState, saveAction, isSavePending] = useActionState<
 		ActionState,
@@ -390,6 +460,34 @@ export const FilterPanel = ({
 		};
 	}, [activeState, isPending]);
 
+	// restore the collapsed state after hydration so SSR markup stays stable
+	useEffect(() => {
+		try {
+			const stored = window.localStorage.getItem(PANEL_STORAGE_KEY);
+			if (stored !== null) {
+				// eslint-disable-next-line react-hooks/set-state-in-effect
+				setExpanded(stored === '1');
+			}
+		} catch {
+			// storage can be unavailable; the default is fine
+		}
+	}, []);
+
+	const toggleExpanded = (): void => {
+		setExpanded((open) => {
+			const next = !open;
+			try {
+				window.localStorage.setItem(
+					PANEL_STORAGE_KEY,
+					next ? '1' : '0'
+				);
+			} catch {
+				// non critical
+			}
+			return next;
+		});
+	};
+
 	// refresh the preset list after every successful mutation
 	useEffect(() => {
 		if (saveState.success || deleteState.success || defaultState.success) {
@@ -426,46 +524,51 @@ export const FilterPanel = ({
 	})?.name;
 
 	return (
-		<section className='w-full rounded-xl border bg-card p-4 shadow-sm'>
-			<div className='flex flex-wrap items-center gap-2'>
+		<section className='border-hairline bg-card shadow-elevation-1 rounded-xl border'>
+			<div className='flex flex-wrap items-center gap-2 px-3 py-2.5'>
 				<Popover open={presetOpen} onOpenChange={setPresetOpen}>
 					<PopoverTrigger asChild>
 						{isLoadingAllFilters ? (
-							<div className='h-9 w-[250px] animate-pulse rounded-md bg-muted' />
+							<Skeleton className='h-8 w-56' />
 						) : (
 							<Button
 								variant='outline'
 								role='combobox'
+								size='sm'
 								aria-expanded={presetOpen}
-								className='w-[250px] justify-between'
+								className='w-56 justify-between font-normal'
 							>
 								<span className='truncate'>
-									{selectedPresetName ??
-										'Select filter preset…'}
+									{selectedPresetName ?? 'No preset selected'}
 								</span>
-								<ChevronsUpDownIcon className='ml-2 h-4 w-4 shrink-0 opacity-50' />
+								<ChevronsUpDownIcon className='size-3.5 shrink-0 opacity-50' />
 							</Button>
 						)}
 					</PopoverTrigger>
-					<PopoverContent className='w-[300px] p-1'>
+					<PopoverContent align='start' className='w-80 p-2'>
 						<Command>
 							<CommandList>
 								<CommandGroup>
 									{allFilters.length === 0 && (
-										<p className='px-2 py-3 text-center text-sm text-muted-foreground'>
+										<p className='text-muted-foreground px-2 py-4 text-center text-sm text-balance'>
 											No presets yet. Name the current
 											filter below and save it.
 										</p>
 									)}
 									{allFilters.map((filter) => {
+										const selected =
+											currentFilter.id === filter.id;
 										return (
 											<div
 												key={filter.id}
-												className='mt-1 mb-1 flex flex-row items-center p-0'
+												className={cn(
+													'group flex items-center gap-1 rounded-md pr-1',
+													selected && 'bg-surface-2'
+												)}
 											>
 												<CommandItem
 													value={filter.id}
-													className='w-3/4 p-0'
+													className='flex-1 cursor-pointer gap-2 text-sm'
 													onSelect={() => {
 														setPresetOpen(false);
 														setCurrentFilter(
@@ -473,103 +576,100 @@ export const FilterPanel = ({
 														);
 													}}
 												>
-													<Button
-														variant={
+													<span
+														className={cn(
+															'truncate',
+															selected &&
+																'text-primary font-medium'
+														)}
+													>
+														{filter.name}
+													</span>
+													{filter.isDefault && (
+														<Badge
+															variant='muted'
+															size='sm'
+															className='ml-auto'
+														>
+															default
+														</Badge>
+													)}
+												</CommandItem>
+												<Button
+													variant='subtle'
+													size='icon-xs'
+													title='Make default'
+													aria-label={`Make ${filter.name} the default filter`}
+													onClick={() => {
+														setLastAction(
+															'updateDefault'
+														);
+														const formData =
+															new FormData();
+														formData.set(
+															'id',
+															filter.id
+														);
+														startTransition(() => {
+															defaultAction(
+																formData
+															);
+														});
+													}}
+												>
+													<StarIcon
+														className={cn(
+															'size-3.5',
+															filter.isDefault &&
+																'fill-primary text-primary'
+														)}
+													/>
+												</Button>
+												<Button
+													variant='subtle'
+													size='icon-xs'
+													title='Delete preset'
+													aria-label={`Delete ${filter.name}`}
+													className='hover:text-destructive'
+													onClick={() => {
+														setLastAction('delete');
+														const formData =
+															new FormData();
+														formData.set(
+															'id',
+															filter.id
+														);
+														startTransition(() => {
+															deleteAction(
+																formData
+															);
+														});
+														if (
 															currentFilter.id ===
 															filter.id
-																? 'secondary'
-																: 'ghost'
+														) {
+															setCurrentFilter(
+																(previous) => {
+																	return {
+																		...previous,
+																		id: null
+																	};
+																}
+															);
 														}
-														className='w-full justify-start overflow-hidden'
-													>
-														<span className='truncate'>
-															{filter.name}
-														</span>
-													</Button>
-												</CommandItem>
-												<div className='flex w-1/4 flex-row'>
-													<Button
-														variant='link'
-														className='w-1/2'
-														title='Make default'
-														aria-label={`Make ${filter.name} the default filter`}
-														onClick={() => {
-															setLastAction(
-																'updateDefault'
-															);
-															const formData =
-																new FormData();
-															formData.set(
-																'id',
-																filter.id
-															);
-															startTransition(
-																() => {
-																	defaultAction(
-																		formData
-																	);
-																}
-															);
-														}}
-													>
-														<StarIcon
-															fill={
-																filter.isDefault
-																	? 'gold'
-																	: 'none'
-															}
-														/>
-													</Button>
-													<Button
-														variant='link'
-														className='w-1/2'
-														title='Delete preset'
-														aria-label={`Delete ${filter.name}`}
-														onClick={() => {
-															setLastAction(
-																'delete'
-															);
-															const formData =
-																new FormData();
-															formData.set(
-																'id',
-																filter.id
-															);
-															startTransition(
-																() => {
-																	deleteAction(
-																		formData
-																	);
-																}
-															);
-															if (
-																currentFilter.id ===
-																filter.id
-															) {
-																setCurrentFilter(
-																	(
-																		previous
-																	) => {
-																		return {
-																			...previous,
-																			id: null
-																		};
-																	}
-																);
-															}
-														}}
-													>
-														<TrashIcon />
-													</Button>
-												</div>
+													}}
+												>
+													<TrashIcon className='size-3.5' />
+												</Button>
 											</div>
 										);
 									})}
-									<div className='mt-2 flex flex-row items-center gap-2 border-t pt-2'>
+									<div className='border-hairline mt-2 flex items-center gap-2 border-t pt-2'>
 										<Input
 											type='text'
 											aria-label='Filter preset name'
-											placeholder='Preset name'
+											placeholder='New preset name'
+											className='h-8'
 											value={currentFilter.name}
 											onChange={(event) => {
 												setCurrentFilter((previous) => {
@@ -581,7 +681,7 @@ export const FilterPanel = ({
 											}}
 										/>
 										<Button
-											variant='link'
+											size='sm'
 											title='Save as new preset'
 											aria-label='Save as new preset'
 											onClick={() => {
@@ -589,6 +689,7 @@ export const FilterPanel = ({
 											}}
 										>
 											<SaveIcon />
+											Save
 										</Button>
 									</div>
 								</CommandGroup>
@@ -599,17 +700,19 @@ export const FilterPanel = ({
 
 				<Button
 					variant='outline'
+					size='sm'
 					disabled={!currentFilter.id || isPending}
 					onClick={() => {
 						runSave(false);
 					}}
 				>
-					Update preset
+					Update
 				</Button>
 
 				<Button
 					variant='ghost'
-					title='Reset all criteria'
+					size='sm'
+					title='Clear all criteria'
 					onClick={() => {
 						setCurrentFilter((previous) => {
 							return {
@@ -621,80 +724,152 @@ export const FilterPanel = ({
 						});
 					}}
 				>
-					<RotateCcw className='mr-1 h-4 w-4' />
+					<RotateCcw />
 					Reset
 				</Button>
 
-				<span className='text-xs text-muted-foreground'>
+				<Badge variant={activeCriteria > 0 ? 'default' : 'muted'}>
 					{activeCriteria === 0
-						? 'No criteria active'
-						: `${activeCriteria} criteria active`}
-				</span>
+						? 'No criteria'
+						: `${activeCriteria} active`}
+				</Badge>
 
-				<div className='min-w-32'>
-					{isPending && <Loader2 className='h-4 w-4 animate-spin' />}
+				<div className='min-w-0 flex-1'>
+					{isPending && (
+						<Loader2 className='text-muted-foreground size-4 animate-spin' />
+					)}
 					{!isPending && statusVisible && activeState.error && (
-						<p className='text-sm text-red-500'>
+						<p className='text-destructive truncate text-xs'>
 							{activeState.error}
 						</p>
 					)}
 					{!isPending && statusVisible && activeState.success && (
-						<p className='text-sm text-green-500'>
+						<p className='text-bullish truncate text-xs'>
 							{activeState.success}
 						</p>
 					)}
 				</div>
+
+				<Button
+					variant='ghost'
+					size='sm'
+					aria-expanded={expanded}
+					aria-controls='screener-filter-body'
+					onClick={toggleExpanded}
+				>
+					{expanded ? 'Hide filters' : 'Show filters'}
+					<ChevronDown
+						className={cn(
+							'transition-transform duration-200',
+							expanded && 'rotate-180'
+						)}
+					/>
+				</Button>
 			</div>
 
-			<div className='mt-4 grid grid-cols-1 gap-4 md:grid-cols-4 lg:grid-cols-6'>
-				<IndicesSelect
-					indices={currentFilter.indices}
-					onChange={(indices) => {
-						setCurrentFilter((previous) => {
-							return { ...previous, indices };
-						});
-					}}
-				/>
-				{[
-					...UNIVERSE_FIELDS,
-					...VOLATILITY_FIELDS,
-					...MOMENTUM_FIELDS
-				].map((field) => {
-					return (
-						<NumberFilterInput
-							key={field.key}
-							field={field}
-							value={currentFilter[field.key]}
-							onChange={(value) => {
-								setCurrentFilter((previous) => {
-									return { ...previous, [field.key]: value };
-								});
-							}}
-						/>
-					);
-				})}
-			</div>
+			{expanded && (
+				<div
+					id='screener-filter-body'
+					className='border-hairline grid gap-x-6 gap-y-5 border-t px-3 py-4 lg:grid-cols-12'
+				>
+					<FieldGroup title='Universe' className='lg:col-span-5'>
+						<div className='grid grid-cols-2 gap-2 sm:grid-cols-3 lg:grid-cols-3'>
+							<IndicesSelect
+								indices={currentFilter.indices}
+								onChange={(indices) => {
+									setCurrentFilter((previous) => {
+										return { ...previous, indices };
+									});
+								}}
+							/>
+							{UNIVERSE_FIELDS.map((field) => {
+								return (
+									<NumberFilterInput
+										key={field.key}
+										field={field}
+										value={currentFilter[field.key]}
+										onChange={(value) => {
+											setCurrentFilter((previous) => {
+												return {
+													...previous,
+													[field.key]: value
+												};
+											});
+										}}
+									/>
+								);
+							})}
+						</div>
+					</FieldGroup>
 
-			<div className='mt-6 flex flex-col gap-4 md:flex-row md:flex-wrap md:items-center'>
-				{SWITCH_FIELDS.map((field) => {
-					return (
-						<SwitchFilterInput
-							key={field.key}
-							label={field.label}
-							tooltip={field.tooltip}
-							checked={currentFilter[field.key]}
-							onChange={(checked) => {
-								setCurrentFilter((previous) => {
-									return {
-										...previous,
-										[field.key]: checked
-									};
-								});
-							}}
-						/>
-					);
-				})}
-			</div>
+					<FieldGroup title='Volatility' className='lg:col-span-2'>
+						<div className='grid grid-cols-2 gap-2'>
+							{VOLATILITY_FIELDS.map((field) => {
+								return (
+									<NumberFilterInput
+										key={field.key}
+										field={field}
+										value={currentFilter[field.key]}
+										onChange={(value) => {
+											setCurrentFilter((previous) => {
+												return {
+													...previous,
+													[field.key]: value
+												};
+											});
+										}}
+									/>
+								);
+							})}
+						</div>
+					</FieldGroup>
+
+					<FieldGroup title='Momentum' className='lg:col-span-5'>
+						<div className='grid grid-cols-2 gap-2 sm:grid-cols-4'>
+							{MOMENTUM_FIELDS.map((field) => {
+								return (
+									<NumberFilterInput
+										key={field.key}
+										field={field}
+										value={currentFilter[field.key]}
+										onChange={(value) => {
+											setCurrentFilter((previous) => {
+												return {
+													...previous,
+													[field.key]: value
+												};
+											});
+										}}
+									/>
+								);
+							})}
+						</div>
+					</FieldGroup>
+
+					<FieldGroup title='Conditions' className='lg:col-span-12'>
+						<div className='flex flex-wrap gap-2'>
+							{SWITCH_FIELDS.map((field) => {
+								return (
+									<SwitchFilterInput
+										key={field.key}
+										label={field.label}
+										tooltip={field.tooltip}
+										checked={currentFilter[field.key]}
+										onChange={(checked) => {
+											setCurrentFilter((previous) => {
+												return {
+													...previous,
+													[field.key]: checked
+												};
+											});
+										}}
+									/>
+								);
+							})}
+						</div>
+					</FieldGroup>
+				</div>
+			)}
 		</section>
 	);
 };

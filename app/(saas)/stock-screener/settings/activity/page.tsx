@@ -84,13 +84,16 @@ export default async function ActivityPage(): Promise<JSX.Element> {
 	const logs = await getActivityLogs();
 
 	return (
-		<section className='flex-1 p-4 lg:p-8'>
-			<h1 className='text-lg lg:text-2xl font-medium mb-6'>
-				Activity Log
+		<section>
+			<h1 className='mb-1 text-2xl font-semibold tracking-tight'>
+				Activity log
 			</h1>
+			<p className='text-muted-foreground mb-6 text-sm'>
+				The last ten actions on your account.
+			</p>
 			<Card>
 				<CardHeader>
-					<CardTitle>Recent Activity</CardTitle>
+					<CardTitle>Recent activity</CardTitle>
 				</CardHeader>
 				<CardContent>
 					{logs.length > 0 ? (
@@ -106,16 +109,16 @@ export default async function ActivityPage(): Promise<JSX.Element> {
 								return (
 									<li
 										key={log.id}
-										className='flex items-center space-x-4'
+										className='flex items-center gap-3'
 									>
-										<div className='bg-primary rounded-full p-2'>
-											<Icon className='w-5 h-5 text-primary-foreground' />
+										<div className='bg-primary/12 text-primary ring-primary/20 flex size-9 shrink-0 items-center justify-center rounded-full ring-1'>
+											<Icon className='size-4' />
 										</div>
-										<div className='flex-1'>
-											<p className='text-sm font-medium'>
+										<div className='min-w-0 flex-1'>
+											<p className='truncate text-sm font-medium'>
 												{formattedAction}
 											</p>
-											<p className='text-xs text-foreground/80'>
+											<p className='text-muted-foreground text-xs'>
 												{getRelativeTime(
 													new Date(log.timestamp)
 												)}
@@ -126,12 +129,12 @@ export default async function ActivityPage(): Promise<JSX.Element> {
 							})}
 						</ul>
 					) : (
-						<div className='flex flex-col items-center justify-center text-center py-12'>
-							<AlertCircle className='h-12 w-12 text-primary mb-4' />
-							<h3 className='text-lg font-semibold mb-2'>
+						<div className='flex flex-col items-center justify-center py-12 text-center'>
+							<AlertCircle className='text-muted-foreground mb-4 size-10' />
+							<h3 className='mb-2 text-lg font-semibold'>
 								No activity yet
 							</h3>
-							<p className='text-sm text-foreground/80 max-w-sm'>
+							<p className='text-muted-foreground max-w-sm text-sm'>
 								When you perform actions like signing in,
 								they&apos;ll appear here.
 							</p>

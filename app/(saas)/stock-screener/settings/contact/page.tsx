@@ -58,7 +58,7 @@ export default function ContactPage(): JSX.Element {
 					</CardHeader>
 					<CardContent className='space-y-6 text-sm'>
 						<div className='flex items-center gap-3'>
-							<Mail className='w-5 h-5 text-muted-foreground' />
+							<Mail className='text-primary size-4 shrink-0' />
 							<div>
 								<p className='font-medium'>Email</p>
 								<p className='text-muted-foreground'>
@@ -68,7 +68,7 @@ export default function ContactPage(): JSX.Element {
 						</div>
 
 						<div className='flex items-center gap-3'>
-							<MapPin className='w-5 h-5 text-muted-foreground' />
+							<MapPin className='text-primary size-4 shrink-0' />
 							<div>
 								<p className='font-medium'>Location</p>
 								<p className='text-muted-foreground'>Germany</p>
@@ -139,12 +139,12 @@ export default function ContactPage(): JSX.Element {
 								)}
 							</Button>
 							{emailAlreadySent && emailSendSuccess && (
-								<p className='text-green-500'>
+								<p className='text-bullish'>
 									Message sent. Thanks!
 								</p>
 							)}
 							{emailAlreadySent && !emailSendSuccess && (
-								<p className='text-red-500'>
+								<p className='text-destructive'>
 									There was an error sending the message.
 									Please try sending it manually via your own
 									email client

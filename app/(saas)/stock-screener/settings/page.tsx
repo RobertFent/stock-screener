@@ -30,7 +30,7 @@ function SubscriptionSkeleton(): JSX.Element {
 	return (
 		<Card className='mb-8 h-[140px]'>
 			<CardHeader>
-				<CardTitle>Team Subscription</CardTitle>
+				<CardTitle>Team subscription</CardTitle>
 			</CardHeader>
 		</Card>
 	);
@@ -46,7 +46,7 @@ function ManageSubscription({
 	return (
 		<Card className='mb-8'>
 			<CardHeader>
-				<CardTitle>Team Subscription</CardTitle>
+				<CardTitle>Team subscription</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className='space-y-4'>
@@ -81,7 +81,7 @@ function TeamMembersSkeleton(): JSX.Element {
 	return (
 		<Card className='mb-8 h-[140px]'>
 			<CardHeader>
-				<CardTitle>Team Members</CardTitle>
+				<CardTitle>Team members</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<div className='animate-pulse space-y-4 mt-1'>
@@ -129,7 +129,7 @@ function TeamMembers({
 		return (
 			<Card className='mb-8'>
 				<CardHeader>
-					<CardTitle>Team Members</CardTitle>
+					<CardTitle>Team members</CardTitle>
 				</CardHeader>
 				<CardContent>
 					<p className='text-muted-foreground'>
@@ -151,7 +151,7 @@ function TeamMembers({
 	return (
 		<Card className='mb-8'>
 			<CardHeader>
-				<CardTitle>Team Members</CardTitle>
+				<CardTitle>Team members</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<ul className='space-y-4'>
@@ -242,7 +242,9 @@ function TeamMembers({
 					})}
 				</ul>
 				{removeState.error && (
-					<p className='text-red-500 mt-4'>{removeState.error}</p>
+					<p className='text-destructive mt-4 text-sm'>
+						{removeState.error}
+					</p>
 				)}
 			</CardContent>
 		</Card>
@@ -253,7 +255,7 @@ function InviteTeamMemberSkeleton(): JSX.Element {
 	return (
 		<Card className='h-[260px]'>
 			<CardHeader>
-				<CardTitle>Invite Team Member</CardTitle>
+				<CardTitle>Invite team member</CardTitle>
 			</CardHeader>
 		</Card>
 	);
@@ -268,7 +270,7 @@ function InviteTeamMember({ isOwner }: { isOwner: boolean }): JSX.Element {
 	return (
 		<Card>
 			<CardHeader>
-				<CardTitle>Invite Team Member</CardTitle>
+				<CardTitle>Invite team member</CardTitle>
 			</CardHeader>
 			<CardContent>
 				<form action={inviteAction} className='space-y-4'>
@@ -306,14 +308,17 @@ function InviteTeamMember({ isOwner }: { isOwner: boolean }): JSX.Element {
 						</RadioGroup>
 					</div>
 					{inviteState?.error && (
-						<p className='text-red-500'>{inviteState.error}</p>
+						<p className='text-destructive text-sm'>
+							{inviteState.error}
+						</p>
 					)}
 					{inviteState?.success && (
-						<p className='text-green-500'>{inviteState.success}</p>
+						<p className='text-bullish text-sm'>
+							{inviteState.success}
+						</p>
 					)}
 					<Button
 						type='submit'
-						className='bg-primary hover:bg-primary-foreground hover:text-primary'
 						disabled={isInvitePending || !isOwner}
 					>
 						{isInvitePending ? (
@@ -374,10 +379,13 @@ export default function SettingsPage(): JSX.Element {
 	}, [teamLoadingError, userLoadingError]);
 
 	return (
-		<section className='flex-1 p-4 lg:p-8'>
-			<h1 className='text-lg lg:text-2xl font-medium mb-6'>
-				Team Settings
+		<section>
+			<h1 className='mb-1 text-2xl font-semibold tracking-tight'>
+				Team settings
 			</h1>
+			<p className='text-muted-foreground mb-6 text-sm'>
+				Manage your subscription, members and invitations.
+			</p>
 			{(isLoadingTeam || isLoadingUser) && (
 				<>
 					<SubscriptionSkeleton />

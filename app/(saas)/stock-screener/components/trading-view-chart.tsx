@@ -142,13 +142,13 @@ export const TradingViewChart = ({
 					className='h-full w-full'
 				/>
 				{status === 'loading' && (
-					<div className='absolute inset-0 flex items-center justify-center gap-2 rounded-xl bg-card/60 text-sm text-muted-foreground'>
+					<div className='absolute inset-0 flex items-center justify-center gap-2 bg-card/70 text-sm text-muted-foreground backdrop-blur-sm'>
 						<Loader2 className='h-4 w-4 animate-spin' />
 						Loading chart for {ticker}…
 					</div>
 				)}
 				{status === 'error' && (
-					<div className='absolute inset-0 flex flex-col items-center justify-center gap-2 rounded-xl border bg-card text-sm text-muted-foreground'>
+					<div className='absolute inset-0 flex flex-col items-center justify-center gap-2 bg-card text-sm text-muted-foreground'>
 						<p>The TradingView chart could not be loaded.</p>
 						<a
 							className='inline-flex items-center gap-1 underline'

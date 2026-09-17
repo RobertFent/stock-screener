@@ -22,7 +22,7 @@ export default async function StockScreenerPage(): Promise<JSX.Element> {
 	const stocks = await getStocks();
 
 	return (
-		<main className='p-4'>
+		<main className='mx-auto w-full max-w-[1920px] flex-1 p-3 sm:p-4'>
 			<StockDataView stocks={stocks} />
 		</main>
 	);

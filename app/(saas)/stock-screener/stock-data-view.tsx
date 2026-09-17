@@ -9,13 +9,21 @@ import {
 	useState
 } from 'react';
 import useSWR from 'swr';
+import { ExternalLink } from 'lucide-react';
+
+import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { fetcher } from '@/lib/utils';
 import type { Filter } from '@/lib/db/schema';
-import type { EnrichedStockDataList } from '@/lib/schemas/stockSchemas';
+import type {
+	EnrichedStockData,
+	EnrichedStockDataList
+} from '@/lib/schemas/stockSchemas';
 import {
 	DEFAULT_INDICATOR_LABELS,
 	INDICATOR_OPTIONS,
 	STORAGE_KEYS,
+	SUPPORTED_INDICES,
 	type Study
 } from '@/lib/screener/constants';
 import {
@@ -30,7 +38,13 @@ import {
 	hasScreenerParams,
 	toSearchParams
 } from '@/lib/screener/url';
-import { formatDate } from '@/lib/screener/format';
+import {
+	adrPercent,
+	formatCurrency,
+	formatDate,
+	formatNumber,
+	formatPercent
+} from '@/lib/screener/format';
 import { FilterPanel } from './components/filter-panel';
 import { ResultsTable } from './components/results-table';
 import { TradingViewChart } from './components/trading-view-chart';
@@ -67,6 +81,89 @@ const readStoredIndicators = (): Study[] => {
 	} catch {
 		return fallback;
 	}
+};
+
+const indexLabel = (key: string): string => {
+	return (
+		SUPPORTED_INDICES.find((index) => {
+			return index.key === key;
+		})?.value ?? key
+	);
+};
+
+/** Compact price strip above the chart, so the key numbers are always visible. */
+const SymbolHeader = ({
+	stock,
+	lastUpdatedAt,
+	indicators,
+	onIndicatorsChange
+}: {
+	stock: EnrichedStockData;
+	lastUpdatedAt: string | null;
+	indicators: Study[];
+	onIndicatorsChange: (indicators: Study[]) => void;
+}): JSX.Element => {
+	const adr = adrPercent(stock.adr_7, stock.close);
+
+	return (
+		<header className='border-hairline bg-card shadow-elevation-1 flex flex-wrap items-center gap-x-5 gap-y-2 rounded-xl border px-3 py-2.5'>
+			<div className='flex items-baseline gap-2'>
+				<h1 className='text-xl font-semibold tracking-tight'>
+					{stock.ticker}
+				</h1>
+				<Badge variant='neutral' size='sm'>
+					{indexLabel(stock.index)}
+				</Badge>
+			</div>
+
+			<dl className='flex flex-wrap items-baseline gap-x-5 gap-y-1'>
+				{[
+					{ label: 'Close', value: formatCurrency(stock.close) },
+					{
+						label: 'ADR%',
+						value: adr === null ? '—' : formatPercent(adr, 1)
+					},
+					{ label: 'IV', value: formatNumber(stock.iv, 1) },
+					{ label: 'RSI 4', value: formatNumber(stock.rsi_4, 1) }
+				].map((item) => {
+					return (
+						<div
+							key={item.label}
+							className='flex items-baseline gap-1.5'
+						>
+							<dt className='text-muted-foreground text-[10px] font-medium tracking-wider uppercase'>
+								{item.label}
+							</dt>
+							<dd className='text-sm font-medium tabular'>
+								{item.value}
+							</dd>
+						</div>
+					);
+				})}
+			</dl>
+
+			<div className='ml-auto flex items-center gap-2'>
+				<span className='text-muted-foreground hidden text-[11px] xl:inline'>
+					Data as of {formatDate(lastUpdatedAt)}
+				</span>
+				<IndicatorSelector
+					selected={indicators}
+					onChange={onIndicatorsChange}
+				/>
+				<Button asChild variant='ghost' size='icon-sm'>
+					<a
+						href={`https://www.tradingview.com/chart/?symbol=${encodeURIComponent(stock.ticker)}`}
+						target='_blank'
+						rel='noreferrer'
+						title={`Open ${stock.ticker} on TradingView`}
+						aria-label={`Open ${stock.ticker} on TradingView`}
+					>
+						<ExternalLink />
+					</a>
+				</Button>
+			</div>
+		</header>
+	);
 };
 
 export default function StockDataView({
@@ -188,7 +285,7 @@ export default function StockDataView({
 	const lastUpdatedAt = stocks[0]?.last_updated_at ?? null;
 
 	return (
-		<div className='flex flex-col gap-4'>
+		<div className='flex flex-col gap-3 lg:h-[calc(100dvh-5.5rem)]'>
 			<FilterPanel
 				allFilters={allFilters ?? []}
 				isLoadingAllFilters={isLoadingAllFilters}
@@ -196,48 +293,41 @@ export default function StockDataView({
 				setCurrentFilter={setCurrentFilter}
 			/>
 
-			<div className='grid min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(320px,1fr)_2.2fr]'>
-				<ResultsTable
-					stocks={visibleStocks}
-					totalCount={stocks.length}
-					selectedTicker={selectedStock?.ticker ?? null}
-					onSelect={(stock) => {
-						setSelectedTicker(stock.ticker);
-					}}
-					sort={sort}
-					onSortChange={setSort}
-					search={search}
-					onSearchChange={setSearch}
-				/>
+			<div className='grid min-h-0 flex-1 grid-cols-1 gap-3 lg:grid-cols-[minmax(300px,24%)_1fr]'>
+				<div className='flex max-h-[55vh] min-h-0 flex-col lg:max-h-none'>
+					<ResultsTable
+						stocks={visibleStocks}
+						totalCount={stocks.length}
+						selectedTicker={selectedStock?.ticker ?? null}
+						onSelect={(stock) => {
+							setSelectedTicker(stock.ticker);
+						}}
+						sort={sort}
+						onSortChange={setSort}
+						search={search}
+						onSearchChange={setSearch}
+					/>
+				</div>
 
-				<div className='flex min-w-0 flex-col gap-4'>
+				{/* scrolls internally when the viewport is too short for the
+				chart plus the metric grid, instead of clipping them */}
+				<div className='scrollbar-slim flex min-h-0 min-w-0 flex-col gap-3 lg:overflow-y-auto'>
 					{selectedStock === null ? (
-						<div className='flex h-[45vh] items-center justify-center rounded-xl border bg-card text-sm text-muted-foreground'>
+						<div className='border-hairline bg-card text-muted-foreground flex min-h-[320px] flex-1 items-center justify-center rounded-xl border text-sm'>
 							Select a symbol to see its chart.
 						</div>
 					) : (
 						<>
-							<div className='flex flex-wrap items-center justify-between gap-2'>
-								<h1 className='text-xl font-bold tracking-tight sm:text-2xl'>
-									{selectedStock.ticker}
-									<span className='ml-2 text-sm font-normal text-muted-foreground uppercase'>
-										{selectedStock.index}
-									</span>
-								</h1>
-								<div className='flex items-center gap-3'>
-									<span className='text-xs text-muted-foreground'>
-										Data as of {formatDate(lastUpdatedAt)}
-									</span>
-									<IndicatorSelector
-										selected={indicators}
-										onChange={setIndicators}
-									/>
-								</div>
-							</div>
+							<SymbolHeader
+								stock={selectedStock}
+								lastUpdatedAt={lastUpdatedAt}
+								indicators={indicators}
+								onIndicatorsChange={setIndicators}
+							/>
 							<TradingViewChart
 								ticker={selectedStock.ticker}
 								indicators={indicators}
-								className='h-[45vh] w-full overflow-hidden rounded-xl border'
+								className='border-hairline bg-card shadow-elevation-1 min-h-[300px] flex-1 shrink-0 overflow-hidden rounded-xl border'
 							/>
 							<DataOverview stock={selectedStock} />
 						</>
