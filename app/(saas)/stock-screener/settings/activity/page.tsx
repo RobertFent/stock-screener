@@ -10,6 +10,9 @@ import {
 	UserMinus,
 	Mail,
 	CheckCircle,
+	Filter as FilterIcon,
+	FilePlus,
+	Trash2,
 	type LucideIcon
 } from 'lucide-react';
 import { JSX } from 'react';
@@ -24,8 +27,9 @@ const iconMap: Record<ActivityType, LucideIcon> = {
 	[ActivityType.REMOVE_TEAM_MEMBER]: UserMinus,
 	[ActivityType.INVITE_TEAM_MEMBER]: Mail,
 	[ActivityType.ACCEPT_INVITATION]: CheckCircle,
-	[ActivityType.ADD_FILTER]: CheckCircle, // todo
-	[ActivityType.DELETE_FILTER]: CheckCircle // todo
+	[ActivityType.ADD_FILTER]: FilePlus,
+	[ActivityType.UPDATE_FILTER]: FilterIcon,
+	[ActivityType.DELETE_FILTER]: Trash2
 };
 
 const getRelativeTime = (date: Date): string => {
@@ -67,6 +71,8 @@ function formatAction(action: ActivityType): string {
 			return 'You accepted an invitation';
 		case ActivityType.ADD_FILTER:
 			return 'You added a filter preset';
+		case ActivityType.UPDATE_FILTER:
+			return 'You updated a filter preset';
 		case ActivityType.DELETE_FILTER:
 			return 'You deleted a filter preset';
 		default:

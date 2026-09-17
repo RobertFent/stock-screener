@@ -1,23 +1,26 @@
-import { enrichedStockDataList, selectAllStocks } from '@/lib/db/queries';
 import { JSX } from 'react';
-import StockDataView from './stock-data-view';
 import { cacheLife, cacheTag } from 'next/cache';
-import { z } from 'zod';
+import { selectAllStocks } from '@/lib/db/queries';
+import type { EnrichedStockDataList } from '@/lib/schemas/stockSchemas';
+import StockDataView from './stock-data-view';
 
-// cache the request marked with certain tag.
-// Python then sends request to /revalidate to mark this tag as stale so that up to date stocks will be fetched
-// while not marked as stale the cached data will be used
-const getStocks = async (): Promise<z.infer<typeof enrichedStockDataList>> => {
+/**
+ * Cached under the `stocks-cache` tag. The python scraper calls
+ * `/api/revalidate` once it has written a new batch, which marks the tag stale
+ * so the next visitor gets fresh rows.
+ */
+const getStocks = async (): Promise<EnrichedStockDataList> => {
 	'use cache';
-	cacheLife({
-		stale: 0 // set stale to 0 so that once the cache gets invalidated the client has to wait for the updated data
-	});
+	// stale 0 so that clients wait for fresh data instead of being served the
+	// previous day's numbers right after an invalidation
+	cacheLife({ stale: 0 });
 	cacheTag('stocks-cache');
 	return selectAllStocks();
 };
 
-export default async function SaasPage(): Promise<JSX.Element> {
+export default async function StockScreenerPage(): Promise<JSX.Element> {
 	const stocks = await getStocks();
+
 	return (
 		<main className='p-4'>
 			<StockDataView stocks={stocks} />
