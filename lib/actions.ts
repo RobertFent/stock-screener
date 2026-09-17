@@ -17,7 +17,8 @@ import {
 	getTeamSubscriptionByTeamId,
 	insertNewFilter,
 	selectAllFiltersByTeamId,
-	updateDefaultFilterById
+	updateDefaultFilterById,
+	updateFilterById
 } from './db/queries';
 import { formatError } from './formatters';
 import { filtersFormSchema } from './schemas/formSchemas';
@@ -140,32 +141,62 @@ export const inviteTeamMember = validatedActionWithUserAndTeamId(
 	}
 );
 
+/** Maximum number of saved presets per plan. */
+const FILTER_LIMITS: Record<'free' | 'base', number> = {
+	free: 3,
+	base: 10
+};
+
+/**
+ * Creates a new preset, or updates the existing one when the form carries an
+ * `id`. The per plan quota is only enforced for newly created presets.
+ */
 export const saveFilter = validatedActionWithUserAndTeamId(
 	filtersFormSchema,
 	async (data, _, userWithTeam) => {
 		try {
+			const parsedFilter = parseFilterFormToDBForm(data);
+
+			if (data.id) {
+				const updated = await updateFilterById(
+					data.id,
+					userWithTeam.teamId,
+					parsedFilter
+				);
+				if (!updated) {
+					return { error: 'Filter not found', filterId: null };
+				}
+				await logActivity(
+					userWithTeam.teamId,
+					userWithTeam.user.id,
+					ActivityType.UPDATE_FILTER
+				);
+				return {
+					success: 'Filter updated successfully',
+					filterId: data.id
+				};
+			}
+
 			const [alreadyExistingFilters, teamPlan] = await Promise.all([
 				selectAllFiltersByTeamId(userWithTeam.teamId),
 				getTeamSubscriptionByTeamId(userWithTeam.teamId)
 			]);
-			if (
-				teamPlan !== StripPlan.BASE &&
-				alreadyExistingFilters.length >= 3
-			) {
+
+			const limit =
+				teamPlan === StripPlan.BASE
+					? FILTER_LIMITS.base
+					: FILTER_LIMITS.free;
+
+			if (alreadyExistingFilters.length >= limit) {
 				return {
-					error: 'You have already 3 filters saved. If you want to save more then 3 filters please upgrade your plan',
-					filterId: null
-				};
-			} else if (
-				teamPlan === StripPlan.BASE &&
-				alreadyExistingFilters.length >= 10
-			) {
-				return {
-					error: 'You have already 10 filters saved which is currently the maximum allowed amount.',
+					error:
+						teamPlan === StripPlan.BASE
+							? `You have already ${limit} filters saved which is currently the maximum allowed amount.`
+							: `You have already ${limit} filters saved. If you want to save more than ${limit} filters please upgrade your plan`,
 					filterId: null
 				};
 			}
-			const parsedFilter = parseFilterFormToDBForm(data);
+
 			const newFilterId = await insertNewFilter(
 				parsedFilter,
 				userWithTeam.user.id,
@@ -194,7 +225,13 @@ export const deleteFilter = validatedActionWithUserAndTeamId(
 	deleteFilterSchema,
 	async (data, _, userWithTeam) => {
 		try {
-			await deleteFilterById(data.id);
+			const deleted = await deleteFilterById(
+				data.id,
+				userWithTeam.teamId
+			);
+			if (!deleted) {
+				return { error: 'Filter not found' };
+			}
 			await logActivity(
 				userWithTeam.teamId,
 				userWithTeam.user.id,
@@ -215,7 +252,13 @@ export const updateDefaultFilter = validatedActionWithUserAndTeamId(
 	updateDefaultFilterSchema,
 	async (data, _, userWithTeam) => {
 		try {
-			await updateDefaultFilterById(data.id, userWithTeam.teamId);
+			const updated = await updateDefaultFilterById(
+				data.id,
+				userWithTeam.teamId
+			);
+			if (!updated) {
+				return { error: 'Filter not found' };
+			}
 			return { success: 'Default filter updated' };
 		} catch (error) {
 			log.error(formatError(error));

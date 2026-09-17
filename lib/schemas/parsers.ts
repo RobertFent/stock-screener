@@ -8,6 +8,9 @@ export const parseFilterFormToDBForm = (
 		name: filter.name,
 		indices: filter.indices,
 		minVolume: toOptionalNumber(filter.minVolume),
+		minClose: toOptionalNumber(filter.minClose),
+		maxClose: toOptionalNumber(filter.maxClose),
+		minAdrPercent7: toOptionalNumber(filter.minAdrPercent7),
 		maxRSI4: toOptionalNumber(filter.maxRSI4),
 		maxRSI14: toOptionalNumber(filter.maxRSI14),
 		minIV: toOptionalNumber(filter.minIV),
@@ -31,11 +34,11 @@ export const parseFilterFormToDBForm = (
 };
 
 const toOptionalNumber = (value?: string): number | undefined => {
-	if (value === undefined || value === '') {
+	if (value === undefined || value.trim() === '') {
 		return undefined;
 	}
 	const number = Number(value);
-	return Number.isNaN(number) ? undefined : number;
+	return Number.isFinite(number) ? number : undefined;
 };
 
 const toOptionalCheckboxBoolean = (value?: string): boolean | undefined => {

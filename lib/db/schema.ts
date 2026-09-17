@@ -7,6 +7,7 @@ import {
 	bigint,
 	boolean,
 	integer,
+	real,
 	pgEnum
 } from 'drizzle-orm/pg-core';
 import { relations } from 'drizzle-orm';
@@ -67,6 +68,9 @@ export const filters = pgTable('filters', {
 	name: varchar('name', { length: 255 }).notNull(),
 	indices: indexEnum().array(),
 	minVolume: bigint('min_volume', { mode: 'number' }),
+	minClose: real('min_close'),
+	maxClose: real('max_close'),
+	minAdrPercent7: real('min_adr_percent_7'),
 	maxRSI4: integer('max_rsi4'),
 	maxRSI14: integer('max_rsi14'),
 	minIV: integer('min_iv'),

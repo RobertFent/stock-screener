@@ -18,7 +18,15 @@ import { getCurrentAppUser } from '../auth/actions';
 import { logActivity } from '../serverFunctions';
 import { ActivityType, UserRole } from '../enums';
 import { FilterDBInput } from '../schemas/databaseSchemas';
-import z from 'zod';
+import {
+	enrichedStockData,
+	enrichedStockDataList,
+	type EnrichedStockDataList
+} from '../schemas/stockSchemas';
+
+// re-exported for backwards compatibility; the canonical definition lives in
+// `lib/schemas/stockSchemas.ts` so client components can import it safely
+export { enrichedStockData, enrichedStockDataList };
 
 export const getUserByClerkId = async (
 	clerkId: string
@@ -274,74 +282,52 @@ export const deleteUserWithTeamMembership = async (
 	}
 };
 
-export const enrichedStockData = z.object({
-	id: z.number(),
-	ticker: z.string(),
-	index: z.string(),
-	date: z.string(),
-	close: z.number(),
-	high: z.number(),
-	low: z.number(),
-	open: z.number(),
-	volume: z.string(),
-	ema20: z.number(),
-	ema50: z.number(),
-	macd_line: z.number(),
-	signal_line: z.number(),
-	rsi_4: z.number(),
-	rsi_14: z.number(),
-	iv: z.number(),
-	willr_4: z.number(),
-	willr_14: z.number(),
-	last_updated_at: z.string(),
-	stoch_percent_k: z.number(),
-	stoch_percent_d: z.number(),
-	macd_line_prev_day: z.number(),
-	macd_line_prev_prev_day: z.number(),
-	adr_7: z.string().nullable(), // numerics are received as strings
-	adr_14: z.string().nullable(),
-	ma_200: z.string().nullable()
-});
-export const enrichedStockDataList = z.array(enrichedStockData);
-
-export const selectAllStocks = async (): Promise<
-	z.infer<typeof enrichedStockDataList>
-> => {
-	// more performant approach due to large data set -> using rn prevents lag fct on every col
+/**
+ * Latest row per ticker, enriched with the two previous MACD values so the
+ * client can evaluate "MACD increasing" without a second round trip.
+ *
+ * Only the three most recent rows per ticker are touched (via a lateral join on
+ * the `(ticker, date DESC)` index) instead of scanning the whole history.
+ */
+export const selectAllStocks = async (): Promise<EnrichedStockDataList> => {
 	const result = await stockAnalysisDb.execute(sql`
-    WITH tickers AS (
-		SELECT DISTINCT ticker FROM stock_data
-	),
-	recent AS (
-		SELECT sd.*
-		FROM tickers t
-		CROSS JOIN LATERAL (
-			SELECT *
-			FROM stock_data
-			WHERE ticker = t.ticker
-			ORDER BY date DESC
-			LIMIT 3
-		) sd
-	),
-	enriched AS (
-	SELECT
-		*,
-		ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY date DESC) AS rn,
-		LAG(macd_line, 1) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_day,
-		LAG(macd_line, 2) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_prev_day
-	FROM recent
-	)
-	SELECT *
-	FROM enriched
-	WHERE rn = 1
-	ORDER BY ticker, date DESC;
-  `);
-	const allStocks = enrichedStockDataList.parse(result);
+		WITH tickers AS (
+			SELECT DISTINCT ticker FROM stock_data
+		),
+		recent AS (
+			SELECT sd.*
+			FROM tickers t
+			CROSS JOIN LATERAL (
+				SELECT *
+				FROM stock_data
+				WHERE ticker = t.ticker
+				ORDER BY date DESC
+				LIMIT 3
+			) sd
+		),
+		enriched AS (
+			SELECT
+				*,
+				ROW_NUMBER() OVER (PARTITION BY ticker ORDER BY date DESC) AS rn,
+				LAG(macd_line, 1) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_day,
+				LAG(macd_line, 2) OVER (PARTITION BY ticker ORDER BY date) AS macd_line_prev_prev_day
+			FROM recent
+		)
+		SELECT
+			id, ticker, index, date::text AS date, close, high, low, open, volume,
+			ema20, ema50, macd_line, signal_line, rsi_4, rsi_14, iv,
+			willr_4, willr_14, last_updated_at::text AS last_updated_at,
+			stoch_percent_k, stoch_percent_d,
+			macd_line_prev_day, macd_line_prev_prev_day,
+			adr_7, adr_14, ma_200
+		FROM enriched
+		WHERE rn = 1
+		ORDER BY ticker;
+	`);
 
-	if (allStocks.length === 0) {
-		throw Error('No stock data could be retrieved');
-	}
-	return allStocks;
+	// an empty result is a legitimate state (fresh local database, scraper has
+	// not run yet) and is rendered as an empty screener rather than a crash
+	return enrichedStockDataList.parse(result);
 };
 
 export const selectAllFiltersByTeamId = async (
@@ -350,7 +336,8 @@ export const selectAllFiltersByTeamId = async (
 	const allFilters = await db
 		.select()
 		.from(filters)
-		.where(and(eq(filters.teamId, teamId), isNull(filters.deletedAt)));
+		.where(and(eq(filters.teamId, teamId), isNull(filters.deletedAt)))
+		.orderBy(filters.createdAt);
 
 	return allFilters;
 };
@@ -376,23 +363,102 @@ export const insertNewFilter = async (
 	return newFilter[0].id;
 };
 
-export const deleteFilterById = async (filterId: string): Promise<void> => {
-	await db
+/**
+ * Updates an existing preset in place. Scoped to the team so a filter id from
+ * another team can never be written to.
+ */
+export const updateFilterById = async (
+	filterId: string,
+	teamId: string,
+	filter: FilterDBInput
+): Promise<boolean> => {
+	const updated = await db
 		.update(filters)
-		.set({ deletedAt: new Date() })
-		.where(and(eq(filters.id, filterId)));
+		.set({
+			name: filter.name,
+			indices: filter.indices ?? null,
+			minVolume: filter.minVolume ?? null,
+			minClose: filter.minClose ?? null,
+			maxClose: filter.maxClose ?? null,
+			minAdrPercent7: filter.minAdrPercent7 ?? null,
+			maxRSI4: filter.maxRSI4 ?? null,
+			maxRSI14: filter.maxRSI14 ?? null,
+			minIV: filter.minIV ?? null,
+			maxIV: filter.maxIV ?? null,
+			minWillr4: filter.minWillr4 ?? null,
+			maxWillr4: filter.maxWillr4 ?? null,
+			minWillr14: filter.minWillr14 ?? null,
+			maxWillr14: filter.maxWillr14 ?? null,
+			minStochK: filter.minStochK ?? null,
+			maxStochK: filter.maxStochK ?? null,
+			macdIncreasing: filter.macdIncreasing ?? false,
+			macdLineAboveSignal: filter.macdLineAboveSignal ?? false,
+			closeAboveEma20AboveEma50:
+				filter.closeAboveEma20AboveEma50 ?? false,
+			closeAboveMA200: filter.closeAboveMA200 ?? false,
+			stochasticsKAboveD: filter.stochasticsKAboveD ?? false
+		})
+		.where(
+			and(
+				eq(filters.id, filterId),
+				eq(filters.teamId, teamId),
+				isNull(filters.deletedAt)
+			)
+		)
+		.returning({ id: filters.id });
+
+	return updated.length > 0;
 };
 
+/**
+ * Soft deletes a preset. Scoped to the team, otherwise any authenticated user
+ * could delete another team's filter by guessing its id.
+ */
+export const deleteFilterById = async (
+	filterId: string,
+	teamId: string
+): Promise<boolean> => {
+	const deleted = await db
+		.update(filters)
+		.set({ deletedAt: new Date() })
+		.where(
+			and(
+				eq(filters.id, filterId),
+				eq(filters.teamId, teamId),
+				isNull(filters.deletedAt)
+			)
+		)
+		.returning({ id: filters.id });
+
+	return deleted.length > 0;
+};
+
+/**
+ * Marks one preset as the team default. Runs in a transaction so the team can
+ * never end up without (or with several) default filters.
+ */
 export const updateDefaultFilterById = async (
 	filterId: string,
 	teamId: string
-): Promise<void> => {
-	await db
-		.update(filters)
-		.set({ isDefault: false })
-		.where(and(eq(filters.teamId, teamId)));
-	await db
-		.update(filters)
-		.set({ isDefault: true })
-		.where(and(eq(filters.id, filterId)));
+): Promise<boolean> => {
+	return await db.transaction(async (tx) => {
+		await tx
+			.update(filters)
+			.set({ isDefault: false })
+			.where(eq(filters.teamId, teamId));
+
+		const updated = await tx
+			.update(filters)
+			.set({ isDefault: true })
+			.where(
+				and(
+					eq(filters.id, filterId),
+					eq(filters.teamId, teamId),
+					isNull(filters.deletedAt)
+				)
+			)
+			.returning({ id: filters.id });
+
+		return updated.length > 0;
+	});
 };
