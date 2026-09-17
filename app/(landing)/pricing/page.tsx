@@ -1,4 +1,5 @@
 import { Check } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
 import { SubmitButton } from './submit-button';
 import { JSX } from 'react';
 import { getStripePrices, getStripeProducts } from '@/lib/payments/stripe';
@@ -42,15 +43,24 @@ export default async function PricingPage(): Promise<JSX.Element> {
 	// });
 
 	return (
-		<main className='max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12'>
-			<div className='grid md:grid-cols-2 gap-8 max-w-xl mx-auto'>
+		<main className='mx-auto w-full max-w-7xl flex-1 px-4 py-16 sm:px-6 lg:px-8'>
+			<div className='mx-auto mb-12 max-w-2xl text-center'>
+				<h1 className='text-3xl font-bold tracking-tight text-balance sm:text-4xl'>
+					Simple pricing that scales with your desk
+				</h1>
+				<p className='text-muted-foreground mt-4 text-lg'>
+					Start free. Upgrade when you need more presets or a bigger
+					team.
+				</p>
+			</div>
+			<div className='mx-auto grid max-w-2xl gap-6 md:grid-cols-2'>
 				<PricingCard
 					name={'Free'}
 					price={0}
 					interval={'life time'}
 					features={[
-						'Up to 3 Saved Filters',
-						'Up to 3 Workspace Members'
+						'Up to 3 saved filter presets',
+						'Up to 3 workspace members'
 					]}
 					routesToLogin={true}
 				/>
@@ -60,10 +70,11 @@ export default async function PricingPage(): Promise<JSX.Element> {
 					interval={basePrice?.interval || 'month'}
 					trialDays={basePrice?.trialPeriodDays || 7}
 					features={[
-						'Up to 10 Saved Filters',
-						'Unlimited Workspace Members',
-						'Email Support'
+						'Up to 10 saved filter presets',
+						'Unlimited workspace members',
+						'Email support'
 					]}
+					highlighted
 					priceId={basePrice?.id}
 				/>
 				{/* <PricingCard
@@ -90,7 +101,8 @@ const PricingCard = ({
 	trialDays,
 	features,
 	priceId,
-	routesToLogin = false
+	routesToLogin = false,
+	highlighted = false
 }: {
 	name: string;
 	price: number;
@@ -99,30 +111,47 @@ const PricingCard = ({
 	features: string[];
 	priceId?: string;
 	routesToLogin?: boolean;
+	highlighted?: boolean;
 }): JSX.Element => {
 	return (
-		<div className='p-6 bg-secondary/60 rounded-xl flex flex-col'>
+		<div
+			className={`relative flex flex-col rounded-2xl border p-6 ${
+				highlighted
+					? 'border-primary/40 bg-surface-2 shadow-glow'
+					: 'border-hairline bg-surface-1'
+			}`}
+		>
+			{highlighted && (
+				<Badge className='absolute -top-2.5 right-6'>
+					Most popular
+				</Badge>
+			)}
+
 			<div className='flex-1'>
-				<h2 className='text-2xl font-bold mb-2'>{name}</h2>
-				<div className={trialDays ? 'mb-4' : 'mb-10'}>
-					{trialDays && (
-						<p className='text-sm mb-4 text-secondary-foreground/80'>
-							with {trialDays} day free trial
-						</p>
-					)}
-				</div>
-				<p className='text-4xl font-medium text-secondary-foreground/80 mb-6'>
-					${price / 100}{' '}
-					<span className='text-xl font-normal text-secondary-foreground'>
+				<h2 className='text-lg font-semibold'>{name}</h2>
+
+				<p className='mt-4 flex items-baseline gap-1.5'>
+					<span className='text-4xl font-semibold tabular'>
+						${price / 100}
+					</span>
+					<span className='text-muted-foreground text-sm'>
 						per user / {interval}
 					</span>
 				</p>
-				<ul className='space-y-4 mb-8'>
-					{features.map((feature, index) => {
+
+				<p className='text-muted-foreground mt-2 min-h-5 text-sm'>
+					{trialDays ? `Includes a ${trialDays} day free trial` : ''}
+				</p>
+
+				<ul className='mt-6 mb-8 space-y-3'>
+					{features.map((feature) => {
 						return (
-							<li key={index} className='flex items-start'>
-								<Check className='h-5 w-5 text-primary mr-2 mt-0.5 flex-shrink-0' />
-								<span className='text-secondary-foreground/70'>
+							<li
+								key={feature}
+								className='flex items-start gap-2'
+							>
+								<Check className='text-primary mt-0.5 size-4 shrink-0' />
+								<span className='text-muted-foreground text-sm'>
 									{feature}
 								</span>
 							</li>
@@ -130,6 +159,7 @@ const PricingCard = ({
 					})}
 				</ul>
 			</div>
+
 			{routesToLogin ? (
 				<Link href='/stock-screener' className='mt-auto block'>
 					<SubmitButton />

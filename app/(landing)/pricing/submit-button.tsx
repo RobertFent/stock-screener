@@ -16,13 +16,13 @@ export function SubmitButton(): JSX.Element {
 		>
 			{pending ? (
 				<>
-					<Loader2 className='animate-spin mr-2 h-4 w-4' />
-					Loading...
+					<Loader2 className='animate-spin' />
+					Loading…
 				</>
 			) : (
 				<>
-					Get Started
-					<ArrowRight className='ml-2 h-4 w-4' />
+					Get started
+					<ArrowRight />
 				</>
 			)}
 		</Button>

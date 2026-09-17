@@ -5,15 +5,15 @@ import { JSX } from 'react';
 // todo: this is mostly copy & past compared to stock-screener/settings/contact
 export default function ContactPage(): JSX.Element {
 	return (
-		<section className='xl:max-w-[50vw] p-4 lg:p-8'>
-			<h1 className='text-lg lg:text-2xl font-medium mb-6'>Contact</h1>
+		<section className='mx-auto w-full max-w-2xl flex-1 px-4 py-16 sm:px-6 lg:px-8'>
+			<h1 className='mb-6 text-3xl font-bold tracking-tight'>Contact</h1>
 			<Card>
 				<CardHeader>
 					<CardTitle>Robert Fent</CardTitle>
 				</CardHeader>
 				<CardContent className='space-y-6 text-sm'>
 					<div className='flex items-center gap-3'>
-						<Mail className='w-5 h-5 text-muted-foreground' />
+						<Mail className='text-primary size-4 shrink-0' />
 						<div>
 							<p className='font-medium'>Email</p>
 							<p className='text-muted-foreground'>
@@ -23,7 +23,7 @@ export default function ContactPage(): JSX.Element {
 					</div>
 
 					<div className='flex items-center gap-3'>
-						<MapPin className='w-5 h-5 text-muted-foreground' />
+						<MapPin className='text-primary size-4 shrink-0' />
 						<div>
 							<p className='font-medium'>Location</p>
 							<p className='text-muted-foreground'>Germany</p>

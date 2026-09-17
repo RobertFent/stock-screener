@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { JSX } from 'react';
-import { CircleIcon } from 'lucide-react';
+import { JSX, useState } from 'react';
+import { ArrowRight, Menu, X } from 'lucide-react';
 import {
 	ClerkLoaded,
 	ClerkLoading,
@@ -11,29 +11,37 @@ import {
 	SignInButton
 } from '@clerk/nextjs';
 
+import { BrandWordmark } from '@/components/brand-mark';
+import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
+
+const NAV_LINKS = [
+	{ href: '/pricing', label: 'Pricing' },
+	{ href: '/contact', label: 'Contact' },
+	{ href: '/privacy-policy', label: 'Privacy' }
+];
+
 const ClerkMenu = (): JSX.Element => {
 	return (
 		<>
 			<ClerkLoading>
-				{/* Skeleton or placeholder */}
-				<div className='rounded-full bg-primary h-12 px-5 w-22 animate-pulse' />
+				<Skeleton className='h-9 w-32 rounded-full' />
 			</ClerkLoading>
 
 			<ClerkLoaded>
 				<SignedOut>
 					<SignInButton forceRedirectUrl='/stock-screener'>
-						<button className='bg-primary rounded-full font-medium text-xl sm:h-12 px-4 sm:px-5 cursor-pointer'>
-							Sign In
-						</button>
+						<Button className='rounded-full'>Sign in</Button>
 					</SignInButton>
 				</SignedOut>
 
 				<SignedIn>
-					<Link href='/stock-screener'>
-						<button className='bg-primary rounded-full font-medium text-xl sm:h-12 px-4 sm:px-5 cursor-pointer'>
-							Open Stock Screener
-						</button>
-					</Link>
+					<Button asChild className='rounded-full'>
+						<Link href='/stock-screener'>
+							Open screener
+							<ArrowRight />
+						</Link>
+					</Button>
 				</SignedIn>
 			</ClerkLoaded>
 		</>
@@ -41,31 +49,74 @@ const ClerkMenu = (): JSX.Element => {
 };
 
 const Header = (): JSX.Element => {
+	const [mobileOpen, setMobileOpen] = useState(false);
+
 	return (
-		<header className='border-b px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center overflow-auto'>
-			{/* left items */}
-			<Link href='/' className='flex items-center'>
-				<CircleIcon className='h-6 w-6 text-primary' />
-				<span className='ml-2 md:text-xl font-semibold'>
-					Stock Screener
-				</span>
-			</Link>
-			{/* right items */}
-			<div className='flex items-center space-x-4'>
-				{/* <Link href='/pricing'>
-					<span className='md:text-xl font-semibold'>Pricing</span>
+		<header className='bg-background/70 sticky top-0 z-40 border-b backdrop-blur-xl'>
+			<div className='mx-auto flex h-16 max-w-7xl items-center justify-between gap-4 px-4 sm:px-6 lg:px-8'>
+				<Link
+					href='/'
+					className='hover:text-primary rounded-md transition-colors'
+				>
+					<BrandWordmark />
 				</Link>
-				<Link href='/privacy-policy'>
-					<span className='md:text-xl font-semibold text-nowrap'>
-						Privacy Policy
-					</span>
-				</Link> */}
-				{/* // todo: blog */}
-				{/* <Link href='/blog'>
-					<span className='sm:ml-2 text-xl font-semibold'>Blog</span>
-				</Link> */}
-				<ClerkMenu />
+
+				<nav className='hidden items-center gap-1 md:flex'>
+					{NAV_LINKS.map((link) => {
+						return (
+							<Link
+								key={link.href}
+								href={link.href}
+								className='text-muted-foreground hover:bg-surface-1 hover:text-foreground rounded-md px-3 py-1.5 text-sm font-medium transition-colors'
+							>
+								{link.label}
+							</Link>
+						);
+					})}
+				</nav>
+
+				<div className='flex items-center gap-2'>
+					<div className='hidden sm:block'>
+						<ClerkMenu />
+					</div>
+					<Button
+						variant='ghost'
+						size='icon-sm'
+						className='md:hidden'
+						aria-label='Toggle navigation'
+						aria-expanded={mobileOpen}
+						onClick={() => {
+							setMobileOpen((open) => {
+								return !open;
+							});
+						}}
+					>
+						{mobileOpen ? <X /> : <Menu />}
+					</Button>
+				</div>
 			</div>
+
+			{mobileOpen && (
+				<div className='flex flex-col gap-1 border-t p-3 md:hidden'>
+					{NAV_LINKS.map((link) => {
+						return (
+							<Link
+								key={link.href}
+								href={link.href}
+								onClick={() => {
+									setMobileOpen(false);
+								}}
+								className='text-muted-foreground hover:bg-surface-1 hover:text-foreground rounded-md px-3 py-2 text-sm font-medium transition-colors'
+							>
+								{link.label}
+							</Link>
+						);
+					})}
+					<div className='pt-2 sm:hidden'>
+						<ClerkMenu />
+					</div>
+				</div>
+			)}
 		</header>
 	);
 };
@@ -76,9 +127,9 @@ export default function LandingLayout({
 	children: React.ReactNode;
 }): JSX.Element {
 	return (
-		<section className='flex flex-col min-h-screen'>
+		<div className='flex min-h-screen flex-col'>
 			<Header />
 			{children}
-		</section>
+		</div>
 	);
 }

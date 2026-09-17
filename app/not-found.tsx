@@ -1,27 +1,31 @@
 import Link from 'next/link';
-import { CircleIcon } from 'lucide-react';
 import { JSX } from 'react';
+import { ArrowLeft } from 'lucide-react';
+
+import { BrandMark } from '@/components/brand-mark';
+import { Button } from '@/components/ui/button';
 
 export default function NotFound(): JSX.Element {
 	return (
-		<div className='flex items-center justify-center min-h-[100dvh]'>
-			<div className='max-w-md space-y-8 p-4 text-center'>
-				<div className='flex justify-center'>
-					<CircleIcon className='size-12 text-primary' />
-				</div>
-				<h1 className='text-4xl font-bold text-foreground tracking-tight'>
-					Page Not Found
+		<div className='flex min-h-[100dvh] items-center justify-center px-4'>
+			<div className='max-w-md space-y-6 text-center'>
+				<BrandMark className='mx-auto size-12' />
+				<p className='text-primary text-sm font-semibold tracking-[0.2em] uppercase'>
+					404
+				</p>
+				<h1 className='text-3xl font-bold tracking-tight text-balance'>
+					Page not found
 				</h1>
-				<p className='text-base text-foreground-muted'>
+				<p className='text-muted-foreground'>
 					The page you are looking for might have been removed, had
 					its name changed, or is temporarily unavailable.
 				</p>
-				<Link
-					href='/'
-					className='max-w-48 mx-auto flex justify-center py-2 px-4 border border-gray-300 rounded-full shadow-sm text-sm font-medium text-secondary bg-white hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-orange-500'
-				>
-					Back to Home
-				</Link>
+				<Button asChild variant='outline' className='rounded-full'>
+					<Link href='/'>
+						<ArrowLeft />
+						Back to home
+					</Link>
+				</Button>
 			</div>
 		</div>
 	);

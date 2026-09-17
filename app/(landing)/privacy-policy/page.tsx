@@ -3,11 +3,13 @@ import { JSX } from 'react';
 
 export default function PrivacyPolicy(): JSX.Element {
 	return (
-		<div className='min-h-screen mt-2 md:mt-8 px-2 md:px-8'>
-			<div className='mx-auto max-w-7xl'>
+		<main className='w-full flex-1 px-4 py-12 sm:px-6 lg:px-8'>
+			<div className='mx-auto max-w-3xl'>
 				<Card>
 					<CardHeader>
-						<CardTitle>Privacy Policy</CardTitle>
+						<CardTitle className='text-foreground text-xl normal-case'>
+							Privacy Policy
+						</CardTitle>
 						<p className='text-sm text-muted-foreground'>
 							Last updated: 16 February 2026
 						</p>
@@ -154,6 +156,6 @@ export default function PrivacyPolicy(): JSX.Element {
 					</CardContent>
 				</Card>
 			</div>
-		</div>
+		</main>
 	);
 }
