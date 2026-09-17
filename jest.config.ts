@@ -1,10 +1,11 @@
-import nextJest from 'next/jest';
+import type { Config } from 'jest';
+import nextJest from 'next/jest.js';
 
 const createJestConfig = nextJest({
 	dir: './'
 });
 
-const customJestConfig = {
+const customJestConfig: Config = {
 	setupFilesAfterEnv: ['<rootDir>/jest.setup.ts'],
 	moduleNameMapper: {
 		'^@app/(.*)$': '<rootDir>/app/$1',
@@ -20,12 +21,7 @@ const customJestConfig = {
 		'<rootDir>/components/**/*.{ts,tsx}'
 	],
 	coverageProvider: 'v8',
-	coverageReporters: [
-		'text' as const,
-		'lcov' as const,
-		'json' as const,
-		'clover' as const
-	]
+	coverageReporters: ['text', 'lcov', 'json', 'clover']
 };
 
-module.exports = createJestConfig(customJestConfig);
+export default createJestConfig(customJestConfig);

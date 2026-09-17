@@ -1,7 +1,8 @@
 services:
+  # application database (users, teams, filters, activity log)
   postgres:
     image: postgres:16.4-alpine
-    container_name: next_saas_starter_postgres
+    container_name: stock_screener_postgres
     environment:
       POSTGRES_DB: postgres
       POSTGRES_USER: postgres
@@ -10,6 +11,31 @@ services:
       - 54322:5432
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U postgres]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # stock analysis database, normally written by the python scraper.
+  # `pnpm db:seed:stocks` fills it with generated test data for local work.
+  stock-postgres:
+    image: postgres:16.4-alpine
+    container_name: stock_screener_stock_postgres
+    environment:
+      POSTGRES_DB: stock_analysis
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - 54323:5432
+    volumes:
+      - stock_postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U postgres]
+      interval: 5s
+      timeout: 5s
+      retries: 10
 
 volumes:
   postgres_data:
+  stock_postgres_data:

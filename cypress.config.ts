@@ -1,3 +1,4 @@
+/* eslint-disable no-console */
 import { defineConfig } from 'cypress';
 import { config } from 'dotenv';
 // import { existsSync } from 'fs';

@@ -1,155 +1,169 @@
-# Next.js SaaS Starter
+# Stock Screener
 
-This is a starter template for building a SaaS application using **Next.js** with support for authentication, Stripe integration for payments, and a dashboard for logged-in users.
-
-**Demo: [https://next-saas-start.vercel.app/](https://next-saas-start.vercel.app/)**
+A Next.js screener that surfaces trade candidates from a Postgres database
+filled by a separate python scraper. The app lets a trader define, save and
+share indicator based filters, browse the matching symbols in a sortable table
+and inspect each candidate on a TradingView chart.
 
 ## Features
 
-- Marketing landing page (`/`) with animated Terminal element
-- Pricing page (`/pricing`) which connects to Stripe Checkout
-- Dashboard pages with CRUD operations on users/teams
-- Basic RBAC with Owner and Member roles
-- Subscription management with Stripe Customer Portal
-- Email/password authentication with JWTs stored to cookies
-- Global middleware to protect logged-in routes
-- Local middleware to protect Server Actions or validate Zod schemas
-- Activity logging system for any user events
+- **Screener** (`/stock-screener`) with price/volume/ADR%, RSI, IV, Williams %R,
+  stochastic and moving average criteria
+- **Filter presets** per team, with a default preset and a per plan quota
+- **Sortable, searchable results table** with keyboard navigation
+  (`↑` / `↓` move the selection) and a live match count
+- **Shareable views**: the whole filter, sort, search and selected symbol are
+  mirrored into the URL, so a screen can be bookmarked or sent to someone else
+- **TradingView chart** with up to three selectable studies, remembered locally
+- Marketing landing page, pricing page connected to Stripe Checkout
+- Clerk authentication, subscription management through the Stripe customer
+  portal, activity logging
 
-## Tech Stack
+## Tech stack
 
-- **Framework**: [Next.js](https://nextjs.org/)
-- **Database**: [Postgres](https://www.postgresql.org/)
-- **ORM**: [Drizzle](https://orm.drizzle.team/)
-- **Payments**: [Stripe](https://stripe.com/)
-- **UI Library**: [shadcn/ui](https://ui.shadcn.com/) and [Tailwind CSS](https://tailwindcss.com/)
+| Concern   | Choice                                                |
+| --------- | ----------------------------------------------------- |
+| Framework | [Next.js](https://nextjs.org/) (App Router)           |
+| Database  | [Postgres](https://www.postgresql.org/) (two of them) |
+| ORM       | [Drizzle](https://orm.drizzle.team/)                  |
+| Auth      | [Clerk](https://clerk.com/)                           |
+| Payments  | [Stripe](https://stripe.com/)                         |
+| UI        | [shadcn/ui](https://ui.shadcn.com/) + Tailwind CSS    |
+| Tests     | Jest (unit), Cypress (e2e)                            |
 
-## Getting Started
+### The two databases
+
+| Env var                       | Contents                                                     |
+| ----------------------------- | ------------------------------------------------------------ |
+| `POSTGRES_URL`                | App data: users, teams, filter presets, activity log         |
+| `POSTGRES_URL_STOCK_ANALYSIS` | `stock_data`, written by the python scraper (read only here) |
+
+## Running locally
 
 ```bash
-git clone https://github.com/nextjs/saas-starter
-cd saas-starter
 pnpm install
-```
-
-## Running Locally
-
-[Install](https://docs.stripe.com/stripe-cli) and log in to your Stripe account:
-
-```bash
-stripe login
-```
-
-Use the included setup script to create your `.env` file:
-
-```bash
-pnpm db:setup
-```
-
-Run the database migrations and seed the database with a default user and team:
-
-```bash
-pnpm db:migrate
-pnpm db:seed
-```
-
-This will create the following user and team:
-
-- User: `test@test.com`
-- Password: `admin123`
-
-You can also create new users through the `/sign-up` route.
-
-Finally, run the Next.js development server:
-
-```bash
+cp .env.example .env     # then fill in the Clerk / Stripe / Resend secrets
+docker compose up -d     # starts both Postgres instances
+pnpm db:migrate          # app schema
+pnpm db:seed             # Stripe products
+pnpm db:seed:stocks      # generated stock data, see below
 pnpm dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser to see the app in action.
+Open [http://localhost:3000](http://localhost:3000).
 
-You can listen for Stripe webhooks locally through their CLI to handle subscription change events:
+`pnpm db:setup` can create the `.env` file interactively instead, and Stripe
+webhooks can be forwarded with:
 
 ```bash
 stripe listen --forward-to localhost:3000/api/stripe/webhook
 ```
 
-## Testing Payments
+For Clerk webhooks the local app has to be reachable from the internet:
 
-To test Stripe payments, use the following test card details:
-
-- Card Number: `4242 4242 4242 4242`
-- Expiration: Any future date
-- CVC: Any 3-digit number
-
-## Going to Production
-
-When you're ready to deploy your SaaS application to production, follow these steps:
-
-### Set up a production Stripe webhook
-
-1. Go to the Stripe Dashboard and create a new webhook for your production environment.
-2. Set the endpoint URL to your production API route (e.g., `https://yourdomain.com/api/stripe/webhook`).
-3. Select the events you want to listen for (e.g., `checkout.session.completed`, `customer.subscription.updated`).
-
-### Set up a production Clerk webhook
-
-1. Go to the Clerk Dashboard and create a new webhook for your production environment > `configure` > `Webhooks`.
-2. Set the endpoint URL to your production API route (e.g., `https://yourdomain.com/api/clerk/webhook`).
-
-### Set up Posthog
-
-1. Go to `https://eu.posthog.com/` and follow next.js set up.
-
-### Deploy to Vercel
-
-1. Push your code to a GitHub repository.
-2. Connect your repository to [Vercel](https://vercel.com/) and deploy it.
-3. Follow the Vercel deployment process, which will guide you through setting up your project.
-
-### Add environment variables
-
-In your Vercel project settings (or during deployment), add all the necessary environment variables. Make sure to update the values for the production environment, including:
-
-1. `BASE_URL`: Set this to your production domain.
-2. `STRIPE_SECRET_KEY`: Use your Stripe secret key for the production environment.
-3. `STRIPE_WEBHOOK_SECRET`: Use the webhook secret from the production webhook you created in step 1.
-4. `POSTGRES_URL`: Set this to your production database URL.
-5. `POSTGRES_URL_STOCK_ANALYSIS`: Set this to your production database URL for stock analysis.
-6. `AUTH_SECRET`: Set this to a random string. `openssl rand -base64 32` will generate one.
-7. `CLERK_SECRET_KEY`: Use your Clerk secret key for the production environment.
-8. `CLERK_WEBHOOK_SECRET`: Use your Clerk webhook secret for the production environment.
-9. `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`: Use your Clerk publishable key for the production environment.
-10. `NEXT_PUBLIC_POSTHOG_HOST`: Use your posthog host for the production environment.
-11. `NEXT_PUBLIC_POSTHOG_KEY`: Use your posthog key for the production environment.
-12. `RESEND_API_KEY`: Use your API key generated via Resend.
-13. `REVALIDATE_SECRET`: Set this to a random string. `openssl rand -base64 32` will generate one.
-
-## Additional Setup
-
-Clerk with its webhooks: https://dashboard.clerk.com/apps/app_34HG0hfpT1X83p4pYvaql2l3xr0/instances/ins_34HG0guneaiIErmyNAeoWtlqEAb/webhooks
-
-### Local Development
-
-expose api public so that clerk web hooks work
-
-```sh
+```bash
 ngrok http 3000
 ```
 
-launch in dev mode
+### Generated stock data for local development
 
-```sh
-pnpm dev
+The screener needs a populated `stock_data` table, which in production is the
+python scraper's job. `pnpm db:seed:stocks` creates the table (plus the
+`(ticker, date DESC)` index the screener query relies on) and fills it with
+deterministic, realistic test data:
+
+- ~150 symbols spread across `sp100`, `sp500` and `nasdaq100`
+- a seeded random walk per symbol, with drift and a medium term cycle so trends
+  and mean reversion both occur
+- every indicator computed from that series with the same definitions the UI
+  documents: EMA 20/50, MA 200, Wilder RSI 4/14, MACD 12/26/9, Williams %R 4/14,
+  stochastic slow 14/3/3, ADR 7/14
+
+Because the generator is seeded, two runs produce identical data — useful when
+comparing screenshots or debugging a filter.
+
+```bash
+pnpm db:seed:stocks                 # 260 sessions per symbol
+SEED_DAYS=60 pnpm db:seed:stocks    # quicker, but no MA 200 values
 ```
 
-### Revalidate cache manually (via cronjob for example)
+The script refuses to run against anything that does not look like a local
+database. Set `SEED_FORCE_REMOTE=1` to override that (it truncates the table).
+
+### Indexes on the stock analysis database
+
+The screener query needs `idx_stock_data_ticker_date` on
+`stock_data (ticker, date DESC)`. `pnpm db:seed:stocks` creates it locally; for
+an existing database (production, or one the scraper already filled) use:
+
+```bash
+pnpm db:index:stocks
+```
+
+It builds the index `CONCURRENTLY`, so the scraper can keep writing while it
+runs, and is safe to run repeatedly.
+
+This deliberately is **not** a drizzle migration: `lib/db/migrations` targets the
+_application_ database and drizzle wraps each migration in a transaction, which
+`CREATE INDEX CONCURRENTLY` is not allowed to run inside.
+
+## Quality gates
+
+```bash
+pnpm typecheck
+pnpm lint
+pnpm test                 # or pnpm test:with-coverage
+pnpm cypress:headless
+```
+
+## Caching
+
+`/stock-screener` renders from a cached query tagged `stocks-cache`. The scraper
+invalidates it after writing a new batch:
 
 ```bash
 curl -X POST https://yourapp.com/api/revalidate \
   -H "x-revalidate-secret: super-long-random-string"
 ```
 
-# TODO
+## Going to production
 
-- Update this readme
+### Stripe webhook
+
+1. Create a webhook for the production environment in the Stripe dashboard.
+2. Point it at `https://yourdomain.com/api/stripe/webhook`.
+3. Subscribe to `checkout.session.completed` and `customer.subscription.updated`.
+
+### Clerk webhook
+
+Dashboard → your instance → `configure` → `Webhooks`, pointing at
+`https://yourdomain.com/api/clerk`.
+
+### PostHog
+
+Follow the Next.js setup at `https://eu.posthog.com/`.
+
+### Deploy
+
+Push to GitHub, connect the repository to [Vercel](https://vercel.com/) and set
+the environment variables:
+
+| Variable                            | Notes                           |
+| ----------------------------------- | ------------------------------- |
+| `BASE_URL`                          | Production domain               |
+| `POSTGRES_URL`                      | App database                    |
+| `POSTGRES_URL_STOCK_ANALYSIS`       | Stock analysis database         |
+| `AUTH_SECRET`                       | `openssl rand -base64 32`       |
+| `REVALIDATE_SECRET`                 | `openssl rand -base64 32`       |
+| `STRIPE_SECRET_KEY`                 | Live key                        |
+| `STRIPE_WEBHOOK_SECRET`             | From the production webhook     |
+| `CLERK_SECRET_KEY`                  | Live key                        |
+| `CLERK_WEBHOOK_SECRET`              | From the production webhook     |
+| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Live key                        |
+| `NEXT_PUBLIC_POSTHOG_KEY`           |                                 |
+| `NEXT_PUBLIC_POSTHOG_HOST`          | e.g. `https://eu.i.posthog.com` |
+| `RESEND_API_KEY`                    |                                 |
+
+### Testing payments
+
+Card `4242 4242 4242 4242`, any future expiry, any CVC.
