@@ -269,3 +269,51 @@ describe('fromDbFilter', () => {
 		expect(filter.macdLineAboveSignal).toBe(true);
 	});
 });
+
+describe('matchesFilter with missing indicators', () => {
+	// a symbol without enough history has null indicators; it must not slip
+	// through a criterion it cannot be shown to satisfy
+	const incomplete = buildStock({
+		rsi_4: null,
+		rsi_14: null,
+		iv: null,
+		willr_4: null,
+		willr_14: null,
+		stoch_percent_k: null,
+		stoch_percent_d: null,
+		ema20: null,
+		ema50: null,
+		macd_line: null,
+		signal_line: null
+	});
+
+	it('passes when nothing constrains the missing values', () => {
+		expect(matchesFilter(incomplete, createEmptyFilter())).toBe(true);
+	});
+
+	it.each([
+		['maxRSI4', 90],
+		['maxRSI14', 90],
+		['minIV', 1],
+		['maxIV', 90],
+		['minWillr4', -100],
+		['maxWillr4', 0],
+		['minStochK', 0],
+		['maxStochK', 100]
+	] as const)('is excluded once %s is set', (key, bound) => {
+		expect(
+			matchesFilter(incomplete, { ...createEmptyFilter(), [key]: bound })
+		).toBe(false);
+	});
+
+	it.each([
+		'macdIncreasing',
+		'macdLineAboveSignal',
+		'closeAboveEma20AboveEma50',
+		'stochasticsKAboveD'
+	] as const)('is excluded once %s is required', (key) => {
+		expect(
+			matchesFilter(incomplete, { ...createEmptyFilter(), [key]: true })
+		).toBe(false);
+	});
+});

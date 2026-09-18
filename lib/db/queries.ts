@@ -15,18 +15,22 @@ import {
 	UserWithTeamId
 } from './schema';
 import { getCurrentAppUser } from '../auth/actions';
+import { logger } from '../logger';
 import { logActivity } from '../serverFunctions';
 import { ActivityType, UserRole } from '../enums';
 import { FilterDBInput } from '../schemas/databaseSchemas';
 import {
 	enrichedStockData,
 	enrichedStockDataList,
+	parseStockRows,
 	type EnrichedStockDataList
 } from '../schemas/stockSchemas';
 
 // re-exported for backwards compatibility; the canonical definition lives in
 // `lib/schemas/stockSchemas.ts` so client components can import it safely
 export { enrichedStockData, enrichedStockDataList };
+
+const log = logger.child({ lib: 'db/queries' });
 
 export const getUserByClerkId = async (
 	clerkId: string
@@ -327,7 +331,26 @@ export const selectAllStocks = async (): Promise<EnrichedStockDataList> => {
 
 	// an empty result is a legitimate state (fresh local database, scraper has
 	// not run yet) and is rendered as an empty screener rather than a crash
-	return enrichedStockDataList.parse(result);
+	const { stocks, rejected } = parseStockRows(result as unknown[]);
+
+	if (rejected.length > 0) {
+		// a symbol the scraper wrote badly must not take the page (or the
+		// build, which prerenders this route) down with it
+		log.warn(
+			{
+				rejectedCount: rejected.length,
+				examples: rejected.slice(0, 5).map((entry) => {
+					return {
+						ticker: (entry.row as { ticker?: string }).ticker,
+						issue: entry.issue
+					};
+				})
+			},
+			'Dropped stock rows that failed validation'
+		);
+	}
+
+	return stocks;
 };
 
 export const selectAllFiltersByTeamId = async (

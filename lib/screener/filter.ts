@@ -129,12 +129,36 @@ export const toFormData = (filter: ScreenerFilter): FormData => {
 };
 
 /**
+ * A `min*` bound rejects a value below it; a value the scraper could not
+ * compute (null) cannot be shown to satisfy the bound, so it is rejected too.
+ */
+const failsMin = (value: number | null, bound: number | null): boolean => {
+	if (bound === null) {
+		return false;
+	}
+	return value === null || value < bound;
+};
+
+/** Mirror of {@link failsMin} for upper bounds. */
+const failsMax = (value: number | null, bound: number | null): boolean => {
+	if (bound === null) {
+		return false;
+	}
+	return value === null || value > bound;
+};
+
+/**
  * Pure predicate deciding whether a single stock passes the given filter.
  *
  * Semantics, deliberately explicit because several of these were inverted
  * before: a `min*` bound rejects values BELOW it, a `max*` bound rejects values
  * ABOVE it. This holds for Williams %R and Stochastic %K too, even though
  * Williams %R is a negative oscillator (-100..0).
+ *
+ * Indicators can be missing - a symbol with fewer sessions than the period, or
+ * a flat range the scraper divided by zero. A missing value never satisfies a
+ * criterion: an unverifiable condition excludes the symbol rather than letting
+ * it through on a technicality.
  */
 export const matchesFilter = (
 	stock: EnrichedStockData,
@@ -147,67 +171,61 @@ export const matchesFilter = (
 		return false;
 	}
 
-	const volume = toNumberOrNull(stock.volume);
+	if (failsMin(toNumberOrNull(stock.volume), filter.minVolume)) {
+		return false;
+	}
+
 	if (
-		filter.minVolume !== null &&
-		(volume === null || volume < filter.minVolume)
+		failsMin(stock.close, filter.minClose) ||
+		failsMax(stock.close, filter.maxClose)
 	) {
 		return false;
 	}
 
-	if (filter.minClose !== null && stock.close < filter.minClose) {
-		return false;
-	}
-	if (filter.maxClose !== null && stock.close > filter.maxClose) {
+	if (failsMin(adrPercent(stock.adr_7, stock.close), filter.minAdrPercent7)) {
 		return false;
 	}
 
-	if (filter.minAdrPercent7 !== null) {
-		const adr = adrPercent(stock.adr_7, stock.close);
-		if (adr === null || adr < filter.minAdrPercent7) {
-			return false;
-		}
-	}
-
-	if (filter.maxRSI4 !== null && stock.rsi_4 > filter.maxRSI4) {
-		return false;
-	}
-	if (filter.maxRSI14 !== null && stock.rsi_14 > filter.maxRSI14) {
+	if (
+		failsMax(stock.rsi_4, filter.maxRSI4) ||
+		failsMax(stock.rsi_14, filter.maxRSI14)
+	) {
 		return false;
 	}
 
-	if (filter.minIV !== null && stock.iv < filter.minIV) {
-		return false;
-	}
-	if (filter.maxIV !== null && stock.iv > filter.maxIV) {
+	if (failsMin(stock.iv, filter.minIV) || failsMax(stock.iv, filter.maxIV)) {
 		return false;
 	}
 
-	if (filter.minWillr4 !== null && stock.willr_4 < filter.minWillr4) {
-		return false;
-	}
-	if (filter.maxWillr4 !== null && stock.willr_4 > filter.maxWillr4) {
-		return false;
-	}
-
-	if (filter.minWillr14 !== null && stock.willr_14 < filter.minWillr14) {
-		return false;
-	}
-	if (filter.maxWillr14 !== null && stock.willr_14 > filter.maxWillr14) {
+	if (
+		failsMin(stock.willr_4, filter.minWillr4) ||
+		failsMax(stock.willr_4, filter.maxWillr4)
+	) {
 		return false;
 	}
 
-	if (filter.minStochK !== null && stock.stoch_percent_k < filter.minStochK) {
+	if (
+		failsMin(stock.willr_14, filter.minWillr14) ||
+		failsMax(stock.willr_14, filter.maxWillr14)
+	) {
 		return false;
 	}
-	if (filter.maxStochK !== null && stock.stoch_percent_k > filter.maxStochK) {
+
+	if (
+		failsMin(stock.stoch_percent_k, filter.minStochK) ||
+		failsMax(stock.stoch_percent_k, filter.maxStochK)
+	) {
 		return false;
 	}
 
 	if (filter.macdIncreasing) {
 		const { macd_line, macd_line_prev_day, macd_line_prev_prev_day } =
 			stock;
-		if (macd_line_prev_day === null || macd_line_prev_prev_day === null) {
+		if (
+			macd_line === null ||
+			macd_line_prev_day === null ||
+			macd_line_prev_prev_day === null
+		) {
 			return false;
 		}
 		if (
@@ -218,15 +236,25 @@ export const matchesFilter = (
 		}
 	}
 
-	if (filter.macdLineAboveSignal && stock.macd_line <= stock.signal_line) {
-		return false;
+	if (filter.macdLineAboveSignal) {
+		if (
+			stock.macd_line === null ||
+			stock.signal_line === null ||
+			stock.macd_line <= stock.signal_line
+		) {
+			return false;
+		}
 	}
 
-	if (
-		filter.closeAboveEma20AboveEma50 &&
-		(stock.close < stock.ema20 || stock.ema20 < stock.ema50)
-	) {
-		return false;
+	if (filter.closeAboveEma20AboveEma50) {
+		if (
+			stock.ema20 === null ||
+			stock.ema50 === null ||
+			stock.close < stock.ema20 ||
+			stock.ema20 < stock.ema50
+		) {
+			return false;
+		}
 	}
 
 	if (filter.closeAboveMA200) {
@@ -237,11 +265,14 @@ export const matchesFilter = (
 		}
 	}
 
-	if (
-		filter.stochasticsKAboveD &&
-		stock.stoch_percent_k <= stock.stoch_percent_d
-	) {
-		return false;
+	if (filter.stochasticsKAboveD) {
+		if (
+			stock.stoch_percent_k === null ||
+			stock.stoch_percent_d === null ||
+			stock.stoch_percent_k <= stock.stoch_percent_d
+		) {
+			return false;
+		}
 	}
 
 	return true;

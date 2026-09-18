@@ -22,6 +22,7 @@ import {
 	EM_DASH
 } from '@/lib/screener/format';
 import { rsiTone, stochTone, toneClass, willrTone } from '@/lib/screener/tone';
+import { evaluateConditions } from '@/lib/screener/conditions';
 
 type Stat = {
 	label: string;
@@ -131,35 +132,15 @@ export const DataOverview = ({
 	return (
 		<section className='border-hairline bg-card shadow-elevation-1 flex flex-col gap-3 rounded-xl border p-3'>
 			<div className='flex flex-wrap gap-1.5'>
-				<ConditionChip
-					label='Close > MA200'
-					state={ma200 === null ? null : stock.close >= ma200}
-				/>
-				<ConditionChip
-					label='Close > EMA20 > EMA50'
-					state={
-						stock.close >= stock.ema20 && stock.ema20 >= stock.ema50
-					}
-				/>
-				<ConditionChip
-					label='MACD > signal'
-					state={stock.macd_line > stock.signal_line}
-				/>
-				<ConditionChip
-					label='MACD rising'
-					state={
-						stock.macd_line_prev_day === null ||
-						stock.macd_line_prev_prev_day === null
-							? null
-							: stock.macd_line >= stock.macd_line_prev_day &&
-								stock.macd_line_prev_day >=
-									stock.macd_line_prev_prev_day
-					}
-				/>
-				<ConditionChip
-					label='%K > %D'
-					state={stock.stoch_percent_k > stock.stoch_percent_d}
-				/>
+				{evaluateConditions(stock).map((condition) => {
+					return (
+						<ConditionChip
+							key={condition.label}
+							label={condition.label}
+							state={condition.state}
+						/>
+					);
+				})}
 			</div>
 
 			<dl className='grid grid-cols-2 gap-x-4 gap-y-2.5 sm:grid-cols-4 xl:grid-cols-7'>
